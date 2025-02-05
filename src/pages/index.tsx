@@ -1,11 +1,14 @@
+import { Typography, Container } from "@mui/material"
 
 export default function Home() {
     return (
-        <div>
-        <main>
-            <h1>Welcome to WatMovie</h1>
-            <p>Find your next favorite movie!</p>
-        </main>
-        </div>
+        <Container>
+            <Typography variant="h1">
+                Welcome to WatMovie!
+            </Typography>
+            <Typography variant="body1">
+                This is a movie database website where you can search for movies and view their details.
+            </Typography>
+        </Container>
     );
-    }
+}
