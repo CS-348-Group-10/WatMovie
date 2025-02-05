@@ -1,0 +1,26 @@
+{
+  "extends": "next/core-web-vitals",
+  "rules": {
+    "semi": [ "error", "never" ],
+    "indent": [ "error", "tab" ],
+    "import/order": [
+      "error",
+      {
+        "groups": [
+          "builtin",
+          "external",
+          "internal",
+          "parent",
+          "sibling",
+          "index"
+        ],
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        }
+      }
+    ],
+    "quotes": ["error", "single", { "avoidEscape": true }],
+    "brace-style": ["error", "1tbs", { "allowSingleLine": false }]
+  }
+}
