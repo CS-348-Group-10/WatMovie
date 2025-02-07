@@ -1,6 +1,6 @@
 import { AppProps } from 'next/app'
 import Head from 'next/head'
-import RootLayout from './layout';
+import RootLayout from './layout'
 
 export default function App({
 	Component,
@@ -11,9 +11,9 @@ export default function App({
 			<Head>
 				<title>WatMovie</title>
 			</Head>
-      <RootLayout>
-        <Component {...pageProps} />
-      </RootLayout>
-    </>
-  );
+			<RootLayout>
+				<Component {...pageProps} />
+			</RootLayout>
+		</>
+	)
 }
