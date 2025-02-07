@@ -19,6 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const sampleSize = 500
         let lineCount = 0
+        const typeSet = new Set<string>()
         const genresSet = new Set<string>()
   
         // Open the file stream
@@ -32,6 +33,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     row.genres.split(",").forEach((genre: string) => {
                         genresSet.add(genre)
                     })
+                }
+
+                if (row.titleType && row.titleType !== "\\N") {
+                    typeSet.add(row.titleType)
                 }
                 
                 // Reservoir sampling: If fewer than sampleSize, just add the record
@@ -62,7 +67,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     )
                 }
             } catch (error) {
-                res.status(500).json({ error: "Database insert failed", details: error })
+                res.status(500).json({ error: "Database insert failed [genre]", details: error })
+                return
+            }
+
+            try {
+                for (const type of typeSet) {
+                    await client.query(
+                        "INSERT INTO title_types (name) VALUES ($1)",
+                        [type]
+                    )
+                }
+            } catch (error) {
+                res.status(500).json({ error: "Database insert failed [title type]", details: error })
                 return
             }
 
@@ -77,16 +94,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 res.status(500).json({ error: "Database select failed", details: error })
                 return
             }
+
+            const titleTypeToIdMap = new Map<string, number>()
+
+            try {
+                const { rows } = await client.query("SELECT * FROM title_types")
+                rows.forEach((row) => {
+                    titleTypeToIdMap.set(row.name, row.type_id)
+                })
+            } catch (error) {
+                res.status(500).json({ error: "Database select failed", details: error })
+                return
+            }
             
             try {
                 await client.query("BEGIN")
         
                 for (const record of selectedRecords) {
                     await client.query(
-                        "INSERT INTO titles (title_id, type, name, is_adult, start_year, end_year, runtime_minutes) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+                        "INSERT INTO titles (title_id, type_id, name, is_adult, start_year, end_year, runtime_minutes) VALUES ($1, $2, $3, $4, $5, $6, $7)",
                         [
                             record.tconst, 
-                            record.titleType, 
+                            record.titleType === "\\N" ? null : titleTypeToIdMap.get(record.titleType), 
                             record.primaryTitle, 
                             record.isAdult === "0" ? false : true,
                             record.startYear === "\\N" ? null : record.startYear,
