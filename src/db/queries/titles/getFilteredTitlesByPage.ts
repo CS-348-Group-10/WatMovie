@@ -1,3 +1,5 @@
+export const getFilteredTitlesByPageQuery =
+`
 SELECT * FROM titles
 WHERE 
     ($1::TEXT IS NULL OR name ILIKE '%' || $1 || '%')
@@ -5,3 +7,4 @@ WHERE
 ORDER BY title_id
 LIMIT $3
 OFFSET $4;
+`
