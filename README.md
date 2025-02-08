@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# WatMovie
 
-## Getting Started
+## Description
 
-First, run the development server:
+Our application, WatMovie, is a database-driven platform that allows users to explore movies. We plan to utilize the publicly available IMDb Datasets. The platform is designed for movie enthusiasts who want to discover new films, find information about their favorite movies and keep track of what they’re watching currently.
+
+## Steps to run the application
+
+### Step 1: Clone the repository
+
+```bash
+git clone https://github.com/CS-348-Group-10/WatMovie.git
+```
+
+### Step 2: Install dependencies
+
+```bash
+cd WatMovie
+npm install
+```
+
+### Step 3: Setup the database
+
+1. Create a new docker container for PostgreSQL. This will create a new container with the name `watmovie-postgres` and the user `watmovie` with the password `watmovie`, and the default database `postgres`.
+
+    ```bash
+    docker pull postgres
+    docker run --name watmovie-postgres -e POSTGRES_USER=watmovie -e POSTGRES_PASSWORD=watmovie -p 5432:5432 -d postgres
+    ```
+
+2. Add the following environment variables to the `.env` file:
+
+    ```bash
+    DB_USER=watmovie
+    DB_HOST=localhost
+    DB_NAME=postgres
+    DB_PASSWORD=watmovie
+    DB_PORT=5432
+    ```
+
+3. Run the application to create the database schema.
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Next, we need to send an empty POST request to `http://localhost:3000/api/dev/runMigrations` to create the database schema.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Next, we need to send an empty POST request to `http://localhost:3000/api/dev/populateTestData` to populate the database with test data.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Step 4: Open the application
 
-## Learn More
+Check the application by opening the `http://localhost:3000` in your browser. You can see the following page:
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+![WatMovie](public/watmovie.png)
