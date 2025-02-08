@@ -1,43 +1,43 @@
-import { useEffect, useState } from 'react';
-import { Typography, Container, TextField, FormControlLabel, Checkbox, Button, CircularProgress, Card, CardContent, Grid } from '@mui/material';
-import { Title } from '../types';
+import { Typography, Container, TextField, FormControlLabel, Checkbox, Button, CircularProgress, Card, CardContent, Grid } from '@mui/material'
+import { useEffect, useState } from 'react'
+import { Title } from '../types'
 
 export default function Home() {
-	const [movies, setMovies] = useState<Title[]>([]);
-	const [search, setSearch] = useState<string>('');
-	const [showAdult, setShowAdult] = useState<boolean>(false);
-	const [loading, setLoading] = useState<boolean>(false);
+	const [movies, setMovies] = useState<Title[]>([])
+	const [search, setSearch] = useState<string>('')
+	const [showAdult, setShowAdult] = useState<boolean>(false)
+	const [loading, setLoading] = useState<boolean>(false)
 
 	useEffect(() => {
 		const fetchMovies = async () => {
-			setLoading(true);
+			setLoading(true)
 			try {
 				const queryParams = new URLSearchParams({
 					search: search,
 					showAdult: showAdult.toString()
-				});
-				const res = await fetch(`/api/titles?${queryParams}`);
-				const data = await res.json();
-				setMovies(data);
+				})
+				const res = await fetch(`/api/titles?${queryParams}`)
+				const data = await res.json()
+				setMovies(data)
 			} catch (error) {
-				console.error('Failed to fetch movies:', error);
+				console.error('Failed to fetch movies:', error)
 			}
-			setLoading(false);
+			setLoading(false)
 		}
 		
-		fetchMovies();
-	}, [search, showAdult]);
+		fetchMovies()
+	}, [search, showAdult])
 
 	const fetchRandomMovie = async () => {
-		setLoading(true);
+		setLoading(true)
 		try {
-			const res = await fetch('/api/random-title');
-			const data = await res.json();
-			setMovies([data]);
+			const res = await fetch('/api/random-title')
+			const data = await res.json()
+			setMovies([data])
 		} catch (error) {
-			console.error('Failed to fetch random movie:', error);
+			console.error('Failed to fetch random movie:', error)
 		}
-		setLoading(false);
+		setLoading(false)
 	}
 
 	return (
@@ -63,32 +63,32 @@ export default function Home() {
 			</Container>
 		
 
-		{/* Movie Tiles */}
-		{loading ? (
-        <Container sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-          <CircularProgress />
-        </Container>
-      ) : (
-        <Grid container spacing={2}>
-          {movies.map((movie) => (
-            <Grid item xs={12} sm={6} md={4} key={movie.title_id}>
-              <Card sx={{ height: "100%" }}>
-                <CardContent>
-                  <Typography variant="h6">{movie.name}</Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    {movie.start_year} - {movie.end_year ?? "Present"} | {movie.runtime_minutes ?? "Unknown"} min
-                  </Typography>
-                  {movie.is_adult && (
-                    <Typography variant="caption" color="error">
+			{/* Movie Tiles */}
+			{loading ? (
+				<Container sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+					<CircularProgress />
+				</Container>
+			) : (
+				<Grid container spacing={2}>
+					{movies.map((movie) => (
+						<Grid item xs={12} sm={6} md={4} key={movie.title_id}>
+							<Card sx={{ height: '100%' }}>
+								<CardContent>
+									<Typography variant="h6">{movie.name}</Typography>
+									<Typography variant="body2" color="textSecondary">
+										{movie.start_year} - {movie.end_year ?? 'Present'} | {movie.runtime_minutes ?? 'Unknown'} min
+									</Typography>
+									{movie.is_adult && (
+										<Typography variant="caption" color="error">
                       *Adult Content*
-                    </Typography>
-                  )}
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      )}
+										</Typography>
+									)}
+								</CardContent>
+							</Card>
+						</Grid>
+					))}
+				</Grid>
+			)}
 		</Container>
 	)
 }
