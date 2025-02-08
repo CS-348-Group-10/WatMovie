@@ -1,0 +1,12 @@
+| title_id  | type_id | name                        | is_adult | start_year | end_year | runtime_minutes |
+| --------- | ------- | --------------------------- | -------- | ---------- | -------- | --------------- |
+| tt0046500 | 2       | Die Venus vom Tivoli        | false    | 1953       | null     | 95              |
+| tt0047535 | 2       | Striporama                  | false    | 1953       | null     | 78              |
+| tt0047874 | 2       | Salna pavasari              | false    | 1955       | null     | 83              |
+| tt0049343 | 2       | Huk!                        | false    | 1956       | null     | 84              |
+| tt0051058 | 2       | The Tattered Dress          | false    | 1957       | null     | 93              |
+| tt0052128 | 5       | Rest in Violence            | false    | 1958       | null     | 60              |
+| tt0053650 | 2       | Beyond the Curtain          | false    | 1960       | null     | 88              |
+| tt0053768 | 2       | Dinosaurus!                 | false    | 1960       | null     | 83              |
+| tt0054216 | 2       | El puente de la ilusión     | false    | 1965       | null     | 103             |
+| tt0055385 | 2       | Roop Ki Rani Choron Ka Raja | false    | 1961       | null     | 145             |

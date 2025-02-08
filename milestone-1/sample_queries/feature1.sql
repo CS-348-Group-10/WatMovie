@@ -1,0 +1,4 @@
+SELECT * FROM titles
+ORDER BY title_id
+LIMIT 10
+OFFSET 20;
