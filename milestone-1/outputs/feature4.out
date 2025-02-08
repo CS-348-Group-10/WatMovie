@@ -1,0 +1,3 @@
+| title_id  | type_id | name         | is_adult | start_year | end_year | runtime_minutes |
+| --------- | ------- | ------------ | -------- | ---------- | -------- | --------------- |
+| tt0942546 | 5       | Episode #2.4 | false    | 1984       | null     | null            |

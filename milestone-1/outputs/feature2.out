@@ -1,0 +1,4 @@
+| title_id  | type_id | name                    | is_adult | start_year | end_year | runtime_minutes |
+| --------- | ------- | ----------------------- | -------- | ---------- | -------- | --------------- |
+| tt0006523 | 2       | The Code of Marcia Gray | false    | 1916       | null     | 50              |
+| tt0703149 | 5       | The Code                | false    | 1997       | null     | null            |

@@ -1,0 +1,7 @@
+| user_id | title_id  | type_id | name                    | is_adult | start_year | end_year | runtime_minutes |
+| ------- | --------- | ------- | ----------------------- | -------- | ---------- | -------- | --------------- |
+| 1       | tt0025405 | 1       | Little Dutch Mill       | false    | 1934       | null     | 9               |
+| 1       | tt0002299 | 1       | Leap Year Proposals     | false    | 1912       | null     | null            |
+| 1       | tt0043214 | 6       | Love of Life            | false    | 1951       | 1980     | 25              |
+| 1       | tt0047535 | 2       | Striporama              | false    | 1953       | null     | 78              |
+| 1       | tt0006523 | 2       | The Code of Marcia Gray | false    | 1916       | null     | 50              |
