@@ -41,4 +41,4 @@ yarn-error.log*
 next-env.d.ts
 
 # ignore tsv dataset files
-public/title.tsv
+public/*.tsv
