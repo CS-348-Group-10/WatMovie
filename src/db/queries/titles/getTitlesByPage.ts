@@ -21,8 +21,6 @@ LEFT JOIN genres G ON GT.genre_id = G.genre_id
 WHERE 
     ($1::TEXT IS NULL OR T.name ILIKE '%' || $1 || '%')
     AND ($2::BOOLEAN IS NULL OR T.is_adult = $2)
-    AND T.start_year IS NOT NULL
-    AND T.type_id = 2
 GROUP BY
     T.title_id,
     TT.name,
@@ -33,7 +31,7 @@ GROUP BY
     T.runtime_minutes,
     R.sum_of_votes,
     R.total_votes
-ORDER BY T.start_year DESC
+ORDER BY T.title_id
 LIMIT $3
 OFFSET $4;
 `

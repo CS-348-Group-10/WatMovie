@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Title } from '../types'
 import MovieCard from '../components/movieCard'
+import { Title } from '../types'
 
 export default function Home() {
 	const [movies, setMovies] = useState<Title[]>([])
@@ -48,6 +48,7 @@ export default function Home() {
 				<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
 					{movies.map((movie) => (
 						<MovieCard
+							key={movie.id}
 							id={movie.id}
 							title={movie.title}
 							duration={movie.duration}
