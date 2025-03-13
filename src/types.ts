@@ -1,9 +1,11 @@
 export interface Title {
-    title_id: string,
-    type_id: string | null,
-    name: string,
+    id: string,
+    type: string | null,
+    title: string,
     is_adult: boolean,
     start_year: number | null,
     end_year: number | null,
-    runtime_minutes: number | null,
+    duration: number | null,
+    rating: number | null,
+    genres: string[] | null
 }
