@@ -1,8 +1,8 @@
-import { AppBar, Toolbar, Button, Container, TextField } from '@mui/material'
+import { AppBar, Toolbar, Button, TextField } from '@mui/material'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
-import PersistentDrawerLeft from './test'
+import { useState } from 'react'
+import SideBarFilter from './sidebar-filter'
 
 export default function Header() {
 	const [search, setSearch] = useState<string>('')
@@ -12,7 +12,7 @@ export default function Header() {
 			<div>
 				<Toolbar className="flex justify-between">
 					<div className="flex items-center space-x-2">
-						<PersistentDrawerLeft />
+						<SideBarFilter />
 						<Link href="#" className="flex items-center">
 							<Image 
 								src="/logo.png" 

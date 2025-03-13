@@ -1,6 +1,6 @@
 // import "./globals.css";
 
-import { Container } from "@mui/material";
+import { Container } from '@mui/material'
 
 export default function RootLayout({
 	children,
