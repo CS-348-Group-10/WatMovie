@@ -1,6 +1,6 @@
 import { SortOrder, SortType } from '@/types'
 
-const getNotNullCondition = (sortBy: SortType | null) => {
+const getSortingNotNullCondition = (sortBy: SortType | null) => {
 	switch (sortBy) {
 	case SortType.RATING:
 		return 'AND R.sum_of_votes IS NOT NULL AND R.total_votes IS NOT NULL'
@@ -63,7 +63,7 @@ WHERE
     AND ($8::INTEGER IS NULL OR (R.sum_of_votes / R.total_votes >= $8))
     AND ($9::INTEGER IS NULL OR (R.sum_of_votes / R.total_votes <= $9))
     AND ($10::INTEGER[] IS NULL OR GT.genre_id = ANY($10))
-    ${getNotNullCondition(sortBy)}
+    ${getSortingNotNullCondition(sortBy)}
 GROUP BY
     T.title_id,
     T.type_id,
