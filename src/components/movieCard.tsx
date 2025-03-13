@@ -9,14 +9,13 @@ import MovieRating from './rating'
 
 interface MovieCardProps {
   id: string;
-  type: string | null;
   title: string;
   rating: number | null;
-  genres: string[] | null;
+  genres: (string | undefined)[] | null;
   duration: number | null;
 }
 
-export default function MovieCard({ id, type, title, rating, genres, duration }: MovieCardProps) {
+export default function MovieCard({ id, title, rating, genres, duration }: MovieCardProps) {
 	const [posterUrl, setPosterUrl] = React.useState<string>('')
 
 	React.useEffect(() => {
@@ -27,7 +26,6 @@ export default function MovieCard({ id, type, title, rating, genres, duration }:
 					throw new Error('Failed to fetch poster')
 				}
 				const data = await response.json()
-				console.log(data)
 				setPosterUrl(data.Poster === 'N/A' || data.Error ? '/placeholder.png' : data.Poster )
 			} catch (error) {}
 		}
@@ -47,6 +45,7 @@ export default function MovieCard({ id, type, title, rating, genres, duration }:
 						objectFit="cover"
 						objectPosition="cover"
 						className="rounded-t-lg"
+						sizes="(max-width: 768px) 100vw, 50vw"
 					/>
 				</div>
 			)}
