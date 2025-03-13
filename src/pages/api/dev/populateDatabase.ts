@@ -7,10 +7,10 @@ import pool from '@/db'
 import { getAllGenresQuery } from '@/db/queries/genres/getAllGenres'
 import { insertGenreQuery } from '@/db/queries/genres/insertGenre'
 import { insertGenreTitleQuery } from '@/db/queries/genresTitles/insertGenreTitle'
+import { insertRatingQuery } from '@/db/queries/ratings/insertRatings'
 import { insertTitleQuery } from '@/db/queries/titles/insertTitle'
 import { getAllTitleTypesQuery } from '@/db/queries/titleTypes/getAllTitleTypes'
 import { insertTitleTypeQuery } from '@/db/queries/titleTypes/insertTitleType'
-import { insertRatingQuery } from '@/db/queries/ratings/insertRatings'
 
 const TSV_TITLE_FILE = path.join(process.cwd(), 'public', 'title.tsv')
 const TSV_RATINGS_FILE = path.join(process.cwd(), 'public', 'title.ratings.tsv')

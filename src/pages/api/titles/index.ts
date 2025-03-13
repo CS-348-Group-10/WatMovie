@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import pool from '@/db'
-import { getFilteredTitlesByPageQuery } from '@/db/queries/titles/getFilteredTitlesByPage'
 import { getTitlesByPageQuery } from '@/db/queries/titles/getTitlesByPage'
 
 export default async function handler(
@@ -25,14 +24,8 @@ export default async function handler(
 			sanitizedPage ? (sanitizedPage - 1) * sanitizedPageSize : 0
 		]
 
-		if (!sanitizedSearch && !sanitizedIsAdult) {
-			const { rows } = await pool.query(getTitlesByPageQuery, baseParams)
-			res.status(200).json(rows)
-			return
-		}
-
 		const { rows } = await pool.query(
-			getFilteredTitlesByPageQuery,
+			getTitlesByPageQuery,
 			[
 				sanitizedSearch,
 				sanitizedIsAdult,
@@ -40,7 +33,6 @@ export default async function handler(
 			]
 		)
 		res.status(200).json(rows)
-
 	} catch (err) {
 		console.error(err)
 		res.status(500).json({ message: 'Something went wrong' })
