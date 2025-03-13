@@ -48,7 +48,7 @@ SELECT
     CASE
         WHEN COUNT(GT.genre_id) = 0 THEN NULL
         ELSE ARRAY_AGG(GT.genre_id)
-    END AS genres
+    END AS genre_ids
 FROM titles T
 LEFT JOIN ratings R ON T.title_id = R.title_id
 LEFT JOIN genres_titles GT ON T.title_id = GT.title_id
