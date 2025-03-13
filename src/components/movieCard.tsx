@@ -22,7 +22,6 @@ export default function MovieCard({ id, type, title, rating, genres, duration }:
 	React.useEffect(() => {
 		const fetchPoster = async () => {
 			try {
-                console.log(process.env.DB_PASSWORD)
 				const response = await fetch(`http://www.omdbapi.com/?apikey=${process.env.NEXT_PUBLIC_POSTER_API_KEY}&i=${id}`)
 				if (!response.ok) {
 					throw new Error('Failed to fetch poster')
