@@ -7,6 +7,10 @@ import pool from '@/db'
 import { getAllGenresQuery } from '@/db/queries/genres/getAllGenres'
 import { insertGenreQuery } from '@/db/queries/genres/insertGenre'
 import { insertGenreTitleQuery } from '@/db/queries/genresTitles/insertGenreTitle'
+import { getAllMemberCategoriesQuery } from '@/db/queries/memberCategories/getAllMemberCategories'
+import { insertMemberCategoryQuery } from '@/db/queries/memberCategories/insertMemberCategory'
+import { insertProductionMemberQuery } from '@/db/queries/productionMembers/insertProductionMember'
+import { insertProductionTeamQuery } from '@/db/queries/productionTeam/insertProductionTeamQuery'
 import { insertRatingQuery } from '@/db/queries/ratings/insertRatings'
 import { insertTitleQuery } from '@/db/queries/titles/insertTitle'
 import { getAllTitleTypesQuery } from '@/db/queries/titleTypes/getAllTitleTypes'
@@ -14,6 +18,8 @@ import { insertTitleTypeQuery } from '@/db/queries/titleTypes/insertTitleType'
 
 const TSV_TITLE_FILE = path.join(process.cwd(), 'public', 'title.tsv')
 const TSV_RATINGS_FILE = path.join(process.cwd(), 'public', 'title.ratings.tsv')
+const TSV_PRINCIPALS_FILE = path.join(process.cwd(), 'public', 'title.principals.tsv')
+const TSV_NAME_FILE = path.join(process.cwd(), 'public', 'name.basics.tsv')
 
 const PROD_BATCH_SIZE = 1000 // ONE_THOUSAND
 const TEST_DATA_SIZE = 10000 // TEN_THOUSAND
@@ -154,7 +160,7 @@ const insertTitles = async (
 					}
 
 					if (lineCount % 100000 === 0) {
-						console.log(`Processed ${lineCount} records`)
+						console.log(`Processed ${lineCount} title records`)
 					}
 				})
 
@@ -242,6 +248,226 @@ const insertRatings = async (
 	})
 }
 
+const buildMemberCategorySet = async (): Promise<Set<string>> => {
+	return new Promise((resolve, reject) => {
+		const categorySet = new Set<string>()
+
+		const readStream = fs.createReadStream(TSV_PRINCIPALS_FILE).pipe(csv(TSV_PARSER_OPTIONS))
+		
+		readStream.on('data', async (row) => {
+			categorySet.add(row.category)
+		})
+		readStream.on('end', async () => {
+			resolve(categorySet)
+		})
+		readStream.on('error', async (error) => {
+			reject(error)
+		})
+	})
+}
+
+const insertMemberCategories = async (
+	client: any,
+	categorySet: Set<string>
+) => {
+	await client.query('BEGIN')
+
+	for (const category of categorySet) {
+		await client.query(insertMemberCategoryQuery, [category])
+	}
+
+	await client.query('COMMIT')
+}
+
+const getMemberCategoryMapping = async (client: any) => {
+	const categoryToIdMap = new Map<string, number>()
+
+	try {
+		const { rows } = await client.query(getAllMemberCategoriesQuery)
+
+		rows.forEach((row: any) => {
+			categoryToIdMap.set(row.name, row.category_id)
+		})
+
+		return categoryToIdMap
+	} catch (error) {
+		throw new Error('Database select failed [member categories]')
+	}
+}
+
+const getRelatedProductionMemberIds = async (
+	titleIds: Set<string>
+) => {
+	return new Promise<Set<string>>((resolve, reject) => {
+		const productionMembers = new Set<string>()
+
+		const readStream = fs.createReadStream(TSV_PRINCIPALS_FILE).pipe(csv(TSV_PARSER_OPTIONS))
+
+		readStream.on('data', (row) => {
+			if (titleIds.has(row.tconst)) {
+				productionMembers.add(row.nconst)
+			}
+		})
+
+		readStream.on('end', () => {
+			resolve(productionMembers)
+		})
+
+		readStream.on('error', (error) => {
+			reject(error)
+		})
+	})
+}
+
+const processMembersBatch = async (
+	client: any,
+	batchRecords: any[],
+) => {
+	try {
+		await client.query('BEGIN')
+
+		for (const record of batchRecords) {
+			await client.query(
+				insertProductionMemberQuery,
+				[
+					record.nconst,
+					record.primaryName
+				]
+			)
+		}
+		
+		await client.query('COMMIT')
+	} catch (error) {
+		await client.query('ROLLBACK')
+		throw new Error('Member batch insert failed' + error)
+	}
+}
+
+const insertProductionMembers = async (
+	client: any,
+	productionMemberIds: Set<string> | null = null
+) => {
+	try {
+		let batchRecords: any[] = []
+
+		await new Promise<void>((resolve, reject) => {
+			const readStream = fs.createReadStream(TSV_NAME_FILE).pipe(csv(TSV_PARSER_OPTIONS))
+
+			readStream.on('data', async (row) => {
+				if (productionMemberIds && !productionMemberIds.has(row.nconst)) {
+					return
+				}
+				
+				batchRecords.push(row)
+
+				if (batchRecords.length === PROD_BATCH_SIZE) {
+					readStream.pause()
+					processMembersBatch(client, batchRecords)
+						.then(() => {
+							batchRecords = []
+							readStream.resume()
+						})
+						.catch((error) => {
+							reject(error)
+						})
+				}
+			})
+
+			readStream.on('end', async () => {
+				if (batchRecords.length > 0) {
+					try {
+						await processMembersBatch(client, batchRecords)
+					} catch (error) {
+						reject(error)
+					}
+				}
+				resolve()
+			})
+			readStream.on('error', (error) => reject(error))
+		})
+	} catch (error) {
+		throw new Error('Database insert failed [production members]')
+	}
+}
+
+const processProductionTeamBatch = async (
+	client: any,
+	batchRecords: any[],
+	categoryToIdMap: Map<string, number>
+) => {
+	try {
+		await client.query('BEGIN')
+
+		for (const record of batchRecords) {
+			await client.query(
+				insertProductionTeamQuery,
+				[
+					record.tconst,
+					record.ordering,
+					record.nconst,
+					categoryToIdMap.get(record.category),
+					record.job === '\\N' ? null : record.job,
+					record.characters === '\\N' ? null : record.characters
+				]
+			)
+		}
+		
+		await client.query('COMMIT')
+	} catch (error) {
+		await client.query('ROLLBACK')
+		throw new Error('Production team batch insert failed' + error)
+	}
+}
+
+const insertProductionTeam = async (
+	client: any,
+	categoryToIdMap: Map<string, number>,
+	titleIds: Set<string> | null = null
+) => {
+	try {
+		let batchRecords: any[] = []
+
+		await new Promise<void>((resolve, reject) => {
+			const readStream= fs.createReadStream(TSV_PRINCIPALS_FILE).pipe(csv(TSV_PARSER_OPTIONS))
+
+			readStream.on('data', async (row) => {
+				if (titleIds && !titleIds.has(row.tconst)) {
+					return
+				}
+
+				batchRecords.push(row)
+
+				if (batchRecords.length === PROD_BATCH_SIZE) {
+					readStream.pause()
+					processProductionTeamBatch(client, batchRecords, categoryToIdMap)
+						.then(() => {
+							batchRecords = []
+							readStream.resume()
+						})
+						.catch((error) => {
+							reject(error)
+						})
+				}
+			})
+
+			readStream.on('end', async () => {
+				if (batchRecords.length > 0) {
+					try {
+						await processProductionTeamBatch(client, batchRecords, categoryToIdMap)
+					} catch (error) {
+						reject(error)
+					}
+				}
+				resolve()
+			})	
+
+			readStream.on('error', (error) => reject(error))
+		})
+	} catch (error) {
+		throw new Error('Database insert failed [production team]')
+	}
+}
+
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'POST') {
@@ -258,16 +484,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		client = await pool.connect()
 
 		await insertGenresAndTypes(client, genresSet, typeSet)
-		console.log('🚀 Genres and Title Types inserted')
+		console.log('🚀 genres and title_types populated')
 
 		const { genreNameToIdMap, titleTypeToIdMap } = await getGenreAndTitleTypeMapping(client)
 		const { titleIds } = await insertTitles(client, isProduction, genreNameToIdMap, titleTypeToIdMap)
-		console.log('🚀 Titles inserted successfully')
+		console.log('🚀 titles populated')
 
 		await insertRatings(client, titleIds)
-		console.log('🚀 Ratings inserted successfully')
+		console.log('🚀 ratings populated')
+
+		const categorySet = await buildMemberCategorySet()
+		await insertMemberCategories(client, categorySet)
+		console.log('🚀 member_categories populated')
+
+		const productionMemberIds = titleIds ? await getRelatedProductionMemberIds(titleIds) : null
+		await insertProductionMembers(client, productionMemberIds)
+		console.log('🚀 production_members populated')
+
+		const categoryToIdMap = await getMemberCategoryMapping(client)
+		await insertProductionTeam(client, categoryToIdMap, titleIds)
+		console.log('🚀 production_team populated')
 	
-		res.status(200).json({ message: 'TSV records inserted successfully' })
+		res.status(200).json({ message: 'Database populated successfully' })
 	} catch (error) {
 		console.error(error)
 		res.status(500).json({ error: 'Error processing the request', details: error })

@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS titles (
     title_id VARCHAR(36) PRIMARY KEY,
-    type_id INTEGER,
+    type_id INTEGER NOT NULL,
     name TEXT NOT NULL,
     is_adult BOOLEAN NOT NULL DEFAULT FALSE,
     start_year INTEGER,
