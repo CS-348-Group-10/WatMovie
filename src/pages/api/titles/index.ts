@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import pool from '@/db'
-import { getTitlesByPageQuery } from '@/db/queries/titles/getTitlesByPage'
+import { buildGetTitlesByPageQuery } from '@/db/queries/titles/getTitlesByPage'
+import { SortOrder, SortType } from '@/types'
 
 const parseIds = (query: string | string[] | undefined): number[] | null => {
 	try {
@@ -24,7 +25,8 @@ export default async function handler(
 	}
 
 	try {
-		const { typeIds, 
+		const { 
+			typeIds, 
 			searchQuery, 
 			isAdult,
 			startYear,
@@ -36,6 +38,8 @@ export default async function handler(
 			genreIds,
 			pageSize,
 			page, 
+			sortType,
+			sortOrder
 		} = req.query
 
 		const sanitizedTypeIds = parseIds(typeIds)
@@ -50,27 +54,27 @@ export default async function handler(
 		const sanitizedGenreIds = parseIds(genreIds)
 		const sanitizedPageSize = pageSize && !isNaN(Number(pageSize)) ? Math.max(1, Number(pageSize)) : 10
 		const sanitizedPage = page && !isNaN(Number(page)) ? Math.max(1, Number(page)) : null
+		const sanitizedSortType = (sortType && Object.values(SortType).includes(sortType as SortType)) ? sortType as SortType : null
+		const sanitizedSortOrder = (sortOrder && Object.values(SortOrder).includes(sortOrder as SortOrder)) ? sortOrder as SortOrder : SortOrder.ASC
 
 		const baseParams = [
+			sanitizedTypeIds,
+			sanitizedSearchQuery,
+			sanitizedIsAdult,
+			sanitizedStartYear,
+			sanitizedEndYear,
+			sanitizedMinDuration,
+			sanitizedMaxDuration,
+			sanitizedMinRating,
+			sanitizedMaxRating,
+			sanitizedGenreIds,
 			sanitizedPageSize, 
 			sanitizedPage ? (sanitizedPage - 1) * sanitizedPageSize : 0
 		]
 
 		const { rows } = await pool.query(
-			getTitlesByPageQuery,
-			[
-				sanitizedTypeIds,
-				sanitizedSearchQuery,
-				sanitizedIsAdult,
-				sanitizedStartYear,
-				sanitizedEndYear,
-				sanitizedMinDuration,
-				sanitizedMaxDuration,
-				sanitizedMinRating,
-				sanitizedMaxRating,
-				sanitizedGenreIds,
-				...baseParams
-			]
+			buildGetTitlesByPageQuery(sanitizedSortType, sanitizedSortOrder),
+			baseParams
 		)
 		res.status(200).json(rows)
 	} catch (err) {
