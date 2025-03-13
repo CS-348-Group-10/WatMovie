@@ -1,5 +1,5 @@
-import { Typography, Container, TextField, FormControlLabel, Checkbox, Button, CircularProgress, Card, CardContent, Grid } from '@mui/material'
 import { useEffect, useState } from 'react'
+import MovieCard from '../components/movieCard'
 import { Title } from '../types'
 
 export default function Home() {
@@ -41,54 +41,24 @@ export default function Home() {
 	}
 
 	return (
-		<Container maxWidth="md" sx={{ py: 4 }}>
-			{/* Search, Filter, and Random Movie Button */}
-			<Container sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 4 }}>
-				<TextField
-					label="Search Movies"
-					variant='outlined'
-					fullWidth
-					value={search}
-					onChange={(e) => setSearch(e.target.value)}
-				/>
-				<Container sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-					<FormControlLabel
-						control={<Checkbox checked={showAdult} onChange={(e) => setShowAdult(e.target.checked)} />}
-						label="Include Adult Content"
-					/>
-					<Button variant="contained" color="primary" onClick={fetchRandomMovie}>
-						Suggest Random Movie
-					</Button>
-				</Container>
-			</Container>
-		
-
-			{/* Movie Tiles */}
+		<div className="container mx-auto p-4">
 			{loading ? (
-				<Container sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-					<CircularProgress />
-				</Container>
+				<p>Loading...</p>
 			) : (
-				<Grid container spacing={2}>
+				<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
 					{movies.map((movie) => (
-						<Grid item xs={12} sm={6} md={4} key={movie.title_id}>
-							<Card sx={{ height: '100%' }}>
-								<CardContent>
-									<Typography variant="h6">{movie.name}</Typography>
-									<Typography variant="body2" color="textSecondary">
-										{movie.start_year} - {movie.end_year ?? 'Present'} | {movie.runtime_minutes ?? 'Unknown'} min
-									</Typography>
-									{movie.is_adult && (
-										<Typography variant="caption" color="error">
-                      *Adult Content*
-										</Typography>
-									)}
-								</CardContent>
-							</Card>
-						</Grid>
+						<MovieCard
+							key={movie.id}
+							id={movie.id}
+							title={movie.title}
+							duration={movie.duration}
+							genres={movie.genres}
+							type={movie.type}
+							rating={movie.rating}
+						/>
 					))}
-				</Grid>
+				</div>
 			)}
-		</Container>
+		</div>
 	)
 }
