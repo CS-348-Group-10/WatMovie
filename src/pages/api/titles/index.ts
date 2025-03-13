@@ -2,6 +2,18 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import pool from '@/db'
 import { getTitlesByPageQuery } from '@/db/queries/titles/getTitlesByPage'
 
+const parseIds = (query: string | string[] | undefined): number[] | null => {
+	try {
+		if (typeof query === 'string') {
+			return query.split(',').map(Number)
+		}
+	} catch (err) {
+		console.error(err)
+	}
+
+	return null
+}
+
 export default async function handler(
 	req: NextApiRequest,
 	res: NextApiResponse
@@ -12,12 +24,32 @@ export default async function handler(
 	}
 
 	try {
-		const { search, isAdult , page, pageSize } = req.query
+		const { typeIds, 
+			searchQuery, 
+			isAdult,
+			startYear,
+			endYear,
+			minDuration,
+			maxDuration,
+			minRating,
+			maxRating,
+			genreIds,
+			pageSize,
+			page, 
+		} = req.query
 
-		const sanitizedSearch = search ? String(search) : null 
+		const sanitizedTypeIds = parseIds(typeIds)
+		const sanitizedSearchQuery = searchQuery ? String(searchQuery) : null 
 		const sanitizedIsAdult = isAdult ? Boolean(isAdult) : null
-		const sanitizedPage = page && !isNaN(Number(page)) ? Math.max(1, Number(page)) : null
+		const sanitizedStartYear = startYear && !isNaN(Number(startYear)) ? Number(startYear) : null
+		const sanitizedEndYear = endYear && !isNaN(Number(endYear)) ? Number(endYear) : null
+		const sanitizedMinDuration = minDuration && !isNaN(Number(minDuration)) ? Number(minDuration) : null
+		const sanitizedMaxDuration = maxDuration && !isNaN(Number(maxDuration)) ? Number(maxDuration) : null
+		const sanitizedMinRating = minRating && !isNaN(Number(minRating)) ? Number(minRating) : null
+		const sanitizedMaxRating = maxRating && !isNaN(Number(maxRating)) ? Number(maxRating) : null
+		const sanitizedGenreIds = parseIds(genreIds)
 		const sanitizedPageSize = pageSize && !isNaN(Number(pageSize)) ? Math.max(1, Number(pageSize)) : 10
+		const sanitizedPage = page && !isNaN(Number(page)) ? Math.max(1, Number(page)) : null
 
 		const baseParams = [
 			sanitizedPageSize, 
@@ -27,8 +59,16 @@ export default async function handler(
 		const { rows } = await pool.query(
 			getTitlesByPageQuery,
 			[
-				sanitizedSearch,
+				sanitizedTypeIds,
+				sanitizedSearchQuery,
 				sanitizedIsAdult,
+				sanitizedStartYear,
+				sanitizedEndYear,
+				sanitizedMinDuration,
+				sanitizedMaxDuration,
+				sanitizedMinRating,
+				sanitizedMaxRating,
+				sanitizedGenreIds,
 				...baseParams
 			]
 		)
