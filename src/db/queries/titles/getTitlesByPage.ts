@@ -1,5 +1,41 @@
-export const getTitlesByPageQuery = 
-`
+import { SortOrder, SortType } from '@/types'
+
+const getSortingNotNullCondition = (sortBy: SortType | null) => {
+	switch (sortBy) {
+	case SortType.RATING:
+		return 'AND R.sum_of_votes IS NOT NULL AND R.total_votes IS NOT NULL'
+	case SortType.YEAR:
+		return 'AND T.start_year IS NOT NULL'
+	case SortType.RUNTIME:
+		return 'AND T.runtime_minutes IS NOT NULL'
+	default:
+		return ''
+	}
+}
+
+export const buildGetTitlesByPageQuery = (sortBy: SortType | null, order: SortOrder) => {
+	const descTitleId = 'T.title_id DESC'
+	let orderBy = ''
+
+	switch (sortBy) {
+	case SortType.RATING:
+		orderBy = `rating ${order}, ${descTitleId}`
+		break
+	case SortType.TITLE:
+		orderBy = `T.name ${order}, ${descTitleId}`
+		break
+	case SortType.YEAR:
+		orderBy = `T.start_year ${order}, ${descTitleId}`
+		break
+	case SortType.RUNTIME:
+		orderBy = `T.runtime_minutes ${order}, ${descTitleId}`
+		break
+	default:
+		orderBy = descTitleId
+		break
+	}
+
+	return `
 SELECT 
     T.title_id AS id,
     T.type_id,
@@ -12,7 +48,7 @@ SELECT
     CASE
         WHEN COUNT(GT.genre_id) = 0 THEN NULL
         ELSE ARRAY_AGG(GT.genre_id)
-    END AS genres
+    END AS genre_ids
 FROM titles T
 LEFT JOIN ratings R ON T.title_id = R.title_id
 LEFT JOIN genres_titles GT ON T.title_id = GT.title_id
@@ -27,6 +63,7 @@ WHERE
     AND ($8::INTEGER IS NULL OR (R.sum_of_votes / R.total_votes >= $8))
     AND ($9::INTEGER IS NULL OR (R.sum_of_votes / R.total_votes <= $9))
     AND ($10::INTEGER[] IS NULL OR GT.genre_id = ANY($10))
+    ${getSortingNotNullCondition(sortBy)}
 GROUP BY
     T.title_id,
     T.type_id,
@@ -37,7 +74,8 @@ GROUP BY
     T.runtime_minutes,
     R.sum_of_votes,
     R.total_votes
-ORDER BY T.title_id
+ORDER BY ${orderBy}
 LIMIT $11
 OFFSET $12;
 `
+}

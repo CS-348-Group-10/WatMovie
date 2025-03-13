@@ -15,8 +15,8 @@ export default function Header() {
 							src="/logo.png" 
 							className="mr-3 h-10" 
 							alt="WatMovie Logo"
-                            width={80}
-                            height={100}
+							width={80}
+							height={100}
 						/>
 					</Link>
 					<TextField
