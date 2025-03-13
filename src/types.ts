@@ -9,3 +9,15 @@ export interface Title {
     rating: number | null,
     genres: string[] | null
 }
+
+export enum SortType {
+    RATING = 'rating',
+    TITLE = 'title',
+    YEAR = 'year',
+    RUNTIME = 'runtime'
+}
+
+export enum SortOrder {
+    ASC = 'asc',
+    DESC = 'desc'
+}
