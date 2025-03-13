@@ -6,6 +6,7 @@ import Typography from '@mui/material/Typography'
 import Image from 'next/image'
 import * as React from 'react'
 import MovieRating from './rating'
+import Link from 'next/link'
 
 interface MovieCardProps {
   id: string;
@@ -36,6 +37,7 @@ export default function MovieCard({ id, type, title, rating, genres, duration }:
 	}, [id])
 
 	return (
+		<Link href={`/movies/${id}`}>
 		<Card className="max-w-xs rounded-lg shadow-lg">
 			{posterUrl && (
 				<div className="relative w-full h-96">
@@ -70,5 +72,6 @@ export default function MovieCard({ id, type, title, rating, genres, duration }:
 				</Box>
 			</CardContent>
 		</Card>
+		</Link>
 	)
 }
