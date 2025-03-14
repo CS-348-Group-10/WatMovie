@@ -7,7 +7,12 @@ export interface Title {
     end_year: number | null,
     duration: number | null,
     rating: number | null,
-    genres: string[] | null
+    genre_ids: string[] | null
+}
+
+export type Genre = {
+    id: string,
+    name: string
 }
 
 export enum SortType {

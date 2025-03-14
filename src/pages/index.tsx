@@ -52,7 +52,7 @@ export default function Home() {
 							id={movie.id}
 							title={movie.title}
 							duration={movie.duration}
-							genres={movie.genres}
+							genres={movie.genre_ids}
 							type={movie.type}
 							rating={movie.rating}
 						/>
