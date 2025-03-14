@@ -35,6 +35,7 @@ export default async function handler(
 			maxDuration,
 			minRating,
 			maxRating,
+			minVotes,
 			genreIds,
 			pageSize,
 			page, 
@@ -51,6 +52,7 @@ export default async function handler(
 		const sanitizedMaxDuration = maxDuration && !isNaN(Number(maxDuration)) ? Number(maxDuration) : null
 		const sanitizedMinRating = minRating && !isNaN(Number(minRating)) ? Number(minRating) : null
 		const sanitizedMaxRating = maxRating && !isNaN(Number(maxRating)) ? Number(maxRating) : null
+		const sanitizedMinVotes = minVotes && !isNaN(Number(minVotes)) ? Number(minVotes) : null
 		const sanitizedGenreIds = parseIds(genreIds)
 		const sanitizedPageSize = pageSize && !isNaN(Number(pageSize)) ? Math.max(1, Number(pageSize)) : 10
 		const sanitizedPage = page && !isNaN(Number(page)) ? Math.max(1, Number(page)) : null
@@ -67,6 +69,7 @@ export default async function handler(
 			sanitizedMaxDuration,
 			sanitizedMinRating,
 			sanitizedMaxRating,
+			sanitizedMinVotes,
 			sanitizedGenreIds,
 			sanitizedPageSize, 
 			sanitizedPage ? (sanitizedPage - 1) * sanitizedPageSize : 0
