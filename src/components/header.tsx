@@ -2,10 +2,15 @@ import { AppBar, Toolbar, Button, TextField } from '@mui/material'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
+
 import { useRouter } from 'next/router'
 
+interface HeaderProps {
+	setSearch: (search: string) => void;
+}
+
 export default function Header() {
-	const [search, setSearch] = useState<string>('')
+	const [search, setLocalSearch] = useState<string>('')
 	const [loading, setLoading] = useState<boolean>(false)
 	const router = useRouter();
 	
@@ -21,6 +26,7 @@ export default function Header() {
 		}
 		setLoading(false);
 	  };
+
 
 	return (
 		<AppBar position="static" className="bg-black dark:bg-gray-800 shadow-md">
@@ -43,6 +49,11 @@ export default function Header() {
 						placeholder="Search Movies"
 						size="small"
 						sx={{ width: '50%' }}
+						value={search}
+						onChange={(e) => { 
+							headerprops.setSearch(e.target.value)
+							setLocalSearch(e.target.value)
+						}}
 					/>
 					{/* <div className="flex items-center space-x-2">
 						<Button 
