@@ -15,6 +15,20 @@ const parseIds = (query: string | string[] | undefined): number[] | null => {
 	return null
 }
 
+const parseBoolean = (query: string | string[] | undefined): boolean | null => {
+	if (typeof query === 'string') {
+		const lowerCaseQuery = query.toLowerCase()
+		if (lowerCaseQuery === 'true') {
+			return true
+		}
+		if (lowerCaseQuery === 'false') {
+			return false
+		}
+	}
+
+	return null
+}
+
 export default async function handler(
 	req: NextApiRequest,
 	res: NextApiResponse
@@ -45,7 +59,7 @@ export default async function handler(
 
 		const sanitizedTypeIds = parseIds(typeIds)
 		const sanitizedSearchQuery = searchQuery ? String(searchQuery) : null 
-		const sanitizedIsAdult = isAdult ? Boolean(isAdult) : null
+		const sanitizedIsAdult = parseBoolean(isAdult)
 		const sanitizedStartYear = startYear && !isNaN(Number(startYear)) ? Number(startYear) : null
 		const sanitizedEndYear = endYear && !isNaN(Number(endYear)) ? Number(endYear) : null
 		const sanitizedMinDuration = minDuration && !isNaN(Number(minDuration)) ? Number(minDuration) : null
