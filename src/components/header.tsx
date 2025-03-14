@@ -2,10 +2,25 @@ import { AppBar, Toolbar, Button, TextField } from '@mui/material'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
-import SideBarFilter from './sideBarFilter'
+import { useRouter } from 'next/router'
 
 export default function Header() {
 	const [search, setSearch] = useState<string>('')
+	const [loading, setLoading] = useState<boolean>(false)
+	const router = useRouter();
+	
+	const fetchRandomMovie = async () => {
+		setLoading(true);
+		try {
+		  const res = await fetch("/api/random-title");
+		  const data = await res.json();
+		  console.log(data);
+		  router.push(`/movies/${data.title_id}`);
+		} catch (error) {
+		  console.error("Failed to fetch random movie:", error);
+		}
+		setLoading(false);
+	  };
 
 	return (
 		<AppBar position="static" className="bg-black dark:bg-gray-800 shadow-md">
@@ -29,13 +44,31 @@ export default function Header() {
 						size="small"
 						sx={{ width: '50%' }}
 					/>
-					<div className="flex items-center space-x-2">
+					{/* <div className="flex items-center space-x-2">
 						<Button 
 							className="text-white dark:text-white border-gray-300 dark:border-gray-700 hover:bg-gray-800 dark:hover:bg-gray-700 rounded-xl"
 						>
                     Log in
 						</Button>
 					</div>
+					 */}
+					 <div className="flex items-center space-x-2">
+        {/* Random Movie Button */}
+        <Button
+          className="text-white border-gray-300 hover:bg-gray-800 rounded-xl flex items-center"
+          onClick={fetchRandomMovie}
+          disabled={loading}
+        >
+          🎲 {loading ? "Loading..." : "Random"}
+        </Button>
+
+        {/* Login Button */}
+        <Button 
+          className="text-white border-gray-300 hover:bg-gray-800 rounded-xl"
+        >
+          Log in
+        </Button>
+      </div>
 				</Toolbar>
 			</div>
 		</AppBar>
