@@ -14,6 +14,7 @@ const MovieDetails = () => {
     const [moviePlot, setPlot] = useState<string>('')
     const [genres, setGenres] = useState<Genre[]>([])
     const [memberCategories, setMemberCategories] = useState<MemberCategory[]>([])
+    const [search, setSearch] = useState<string>('')
 
     useEffect(() => {
         if (!id) return;
@@ -107,13 +108,15 @@ const MovieDetails = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-100">
+        <div className="bg-gray-100">
             <div className="fixed top-0 left-0 w-full bg-white shadow-md z-50">
                 {/* Header Component */}
-                <Header />
+                <Header 
+                    setSearch={setSearch}
+                />
             </div>  
-            <div className="min-h-[calc(100vh-64px)] w-screen flex bg-gray-100 mt-20">
-                <Card className="w-screen h-screen max-w-6xl mx-auto shadow-lg flex flex-col md:flex-row">
+            <div className="flex bg-gray-100 m-20">
+                <Card className="max-w-6xl mx-auto shadow-lg flex flex-col md:flex-row">
                     {/* Left Section: movie Poster with Black Background */}
                     <div className="w-full md:w-1/3 bg-black flex justify-center items-center p-4 rounded-l-lg">
                         {moviePosterUrl && (
@@ -170,20 +173,24 @@ const MovieDetails = () => {
                         {/* Cast Section */}
                         {movie.cast && movie.cast.length > 0 && (
                             <div className="mt-6">
-                                <h3 className="font-semibold text-lg">Cast</h3>
-                                <List>
+                                <h3 className="font-semibold text-lg">Featured Cast</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
                                     {movie.cast.sort((a, b) => a.ordering - b.ordering).map((actor: Cast) => (
-                                        <ListItem key={actor.id}>
-                                            {
-                                                !actor.characters || actor.characters === "" ? (
-                                                    <ListItemText primary={actor.name} secondary={fetchMemberCategory(actor.category_id)?.name} />
-                                                ) : (
-                                                    <ListItemText primary={`${actor.name} as ${actor.characters}`} secondary={fetchMemberCategory(actor.category_id)?.name} />
-                                                )
-                                            }
+                                        <ListItem key={actor.id} className="w-full">
+                                            {!actor.characters || actor.characters === "" ? (
+                                                <ListItemText
+                                                    primary={actor.name}
+                                                    secondary={fetchMemberCategory(actor.category_id)?.name}
+                                                />
+                                            ) : (
+                                                <ListItemText
+                                                    primary={`${actor.name} as ${actor.characters}`}
+                                                    secondary={fetchMemberCategory(actor.category_id)?.name}
+                                                />
+                                            )}
                                         </ListItem>
                                     ))}
-                                </List>
+                                </div>
                             </div>
                         )}
                     </CardContent>

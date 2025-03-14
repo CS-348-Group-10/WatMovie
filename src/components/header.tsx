@@ -9,7 +9,7 @@ interface HeaderProps {
 	setSearch: (search: string) => void;
 }
 
-export default function Header() {
+export default function Header(headerprops: HeaderProps) {
 	const [search, setLocalSearch] = useState<string>('')
 	const [loading, setLoading] = useState<boolean>(false)
 	const router = useRouter();
