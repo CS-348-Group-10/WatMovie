@@ -55,10 +55,10 @@ const MovieDetails = () => {
         fetchAllGenres();
     }, [id]);
 
-    const fetchGenre = (genreId: string) => {
+    const fetchGenre = (genreId: number) => {
         try {
             // TODO: fix access index (plus 27 particular to my device)
-            return genres[genreId as unknown as number + 27];
+            return genres[genreId + 27];
         } catch (error) {
             console.error("Failed to fetch genre:", error);
             throw error;
