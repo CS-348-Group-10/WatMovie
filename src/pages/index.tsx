@@ -26,6 +26,7 @@ export default function Home() {
 	const [maxRating, setMaxRating] = useState<number | null>(null)
 	const [startYear, setStartYear] = useState<number | null>(null)
 	const [endYear, setEndYear] = useState<number | null>(null)
+	const [minVotes, setMinVotes] = useState<number | null>(null)
 
 	const fetchTitleTypes = async () => {
 		try {
@@ -73,6 +74,7 @@ export default function Home() {
 					...(maxRating && { maxRating: maxRating.toString()}),
 					...(startYear && { startYear: startYear.toString()}),
 					...(endYear && { endYear: endYear.toString()}),
+					...(minVotes && { minVotes: minVotes.toString()}),
 				})
 				const queryString = queryParams.toString()
 				const url = queryString ? `api/titles?${queryParams}` : '/api/titles'
@@ -86,7 +88,7 @@ export default function Home() {
 		}
 
 		fetchMovies()
-	}, [selectedTypes, minDuration, maxDuration, startYear, endYear, minRating, maxRating, selectedGenres, search, showAdult])
+	}, [selectedTypes, minDuration, maxDuration, startYear, endYear, minRating, maxRating, selectedGenres, search, showAdult, minVotes])
 
 	const fetchRandomMovie = async () => {
 		setLoading(true)
@@ -122,6 +124,7 @@ export default function Home() {
 						setStartYear={setStartYear}
 						setEndYear={setEndYear}
 						setIncludeAdult={setShowAdult}
+						setMinVotes={setMinVotes}
 					/>
 				</div>
 				<div className="w-full p-4 overflow-y-auto">

@@ -22,6 +22,7 @@ export default function HeartVote({ value }: HeartVoteProps) {
 	return (
 		<div className='flex items-center'>
 			<StyledRating
+                readOnly
 				name="customized-color"
 				defaultValue={1}
 				getLabelText={(value: number) => `${value} Heart${value !== 1 ? 's' : ''}`}
