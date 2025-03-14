@@ -8,7 +8,7 @@ export interface Title {
     duration: number | null,
     rating: number | null,
     votes: number | null,
-    genres: string[] | null
+    genre_ids: number[] | null
 }
 
 export enum SortType {

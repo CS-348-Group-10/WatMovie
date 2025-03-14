@@ -64,9 +64,9 @@ export default function Home() {
 			try {
 				const queryParams = new URLSearchParams({
 					...(selectedTypes.length !== 0 && { typeIds: selectedTypes.join(',')}),
-					...(search === '' && { searchQuery: search}),
+					...(search !== '' && { searchQuery: search}),
 					...(selectedGenres.length !== 0 && { genreIds: selectedGenres.join(',')}),
-					...(showAdult && { isAdult: showAdult.toString()}),
+					isAdult: showAdult.toString(),
 					...(minDuration && { minDuration: minDuration.toString() }),
 					...(maxDuration && { maxDuration: maxDuration.toString()}),
 					...(minRating && { minRating: minRating.toString()}),
@@ -74,7 +74,9 @@ export default function Home() {
 					...(startYear && { startYear: startYear.toString()}),
 					...(endYear && { endYear: endYear.toString()}),
 				})
-				const res = await fetch(`/api/titles?${queryParams}`)
+				const queryString = queryParams.toString()
+				const url = queryString ? `api/titles?${queryParams}` : '/api/titles'
+				const res = await fetch(url)
 				const data = await res.json()
 				setMovies(data)
 			} catch (error) {
@@ -101,7 +103,9 @@ export default function Home() {
 	return (
 		<div className="container p-1 text-black dark:text-white min-w-full">
 			<div className="fixed top-0 left-0 w-full bg-white shadow-md z-50">
-				<Header />
+				<Header 
+					setSearch={setSearch}
+				/>
 			</div>
 			<div className="flex h-screen pt-20">
 				<div className="w-1/4 p-4 overflow-y-auto">
