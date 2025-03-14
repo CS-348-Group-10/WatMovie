@@ -9,6 +9,7 @@ SELECT
     T.end_year,
     T.runtime_minutes AS duration,
     R.sum_of_votes / R.total_votes AS rating,
+    R.total_votes AS votes,
     CASE
         WHEN COUNT(GT.genre_id) = 0 THEN NULL
         ELSE ARRAY_AGG(GT.genre_id)

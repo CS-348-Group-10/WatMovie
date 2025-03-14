@@ -7,6 +7,7 @@ export interface Title {
     end_year: number | null,
     duration: number | null,
     rating: number | null,
+    votes: number | null,
     genres: string[] | null
 }
 
