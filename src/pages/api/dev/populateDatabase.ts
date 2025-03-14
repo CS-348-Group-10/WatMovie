@@ -22,7 +22,7 @@ const TSV_PRINCIPALS_FILE = path.join(process.cwd(), 'public', 'title.principals
 const TSV_NAME_FILE = path.join(process.cwd(), 'public', 'name.basics.tsv')
 
 const PROD_BATCH_SIZE = 1000 // ONE_THOUSAND
-const TEST_DATA_SIZE = 10000 // TEN_THOUSAND
+const TEST_DATA_SIZE = 100 // ONE_HUNDRED
 const TSV_PARSER_OPTIONS = { separator: '\t', escape: '', quote: '' }
 
 const buildGenreAndTypeSets = async (): Promise<{ 
