@@ -5,7 +5,7 @@ import styled from '@mui/material/styles/styled'
 import Typography from '@mui/material/Typography'
 import * as React from 'react'
 
-interface MovieRatingProps {
+interface HeartVoteProps {
   value: number | null;
 }
 
@@ -18,11 +18,19 @@ const StyledRating = styled(Rating)({
 	},
 })
 
-export default function MovieRating({ value }: MovieRatingProps) {
+export default function HeartVote({ value }: HeartVoteProps) {
 	return (
 		<div className='flex items-center'>
-			<Rating name="read-only" value={value} max={1} precision={0.5} readOnly/>
-			<Typography variant="body2" color="text.secondary" className="p-2">{value ? `${value} / 10`  : 'N/A'}</Typography>
+			<StyledRating
+				name="customized-color"
+				defaultValue={1}
+				getLabelText={(value: number) => `${value} Heart${value !== 1 ? 's' : ''}`}
+				precision={0.5}
+				max={1}
+				icon={<FavoriteIcon fontSize="inherit" />}
+				emptyIcon={<FavoriteBorderIcon fontSize="inherit" />}
+			/>
+			<Typography variant="body2" color="text.secondary" className="p-2">{value ? `${value}`  : 'N/A'}</Typography>
 		</div>
 	)
 }

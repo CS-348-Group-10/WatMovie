@@ -1,6 +1,6 @@
 export interface Title {
     id: string,
-    type: string | null,
+    type_id: number | null,
     title: string,
     is_adult: boolean,
     start_year: number | null,
