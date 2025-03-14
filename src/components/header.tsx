@@ -2,10 +2,13 @@ import { AppBar, Toolbar, Button, TextField } from '@mui/material'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
-import SideBarFilter from './sideBarFilter'
 
-export default function Header() {
-	const [search, setSearch] = useState<string>('')
+interface HeaderProps {
+	setSearch: (search: string) => void;
+}
+
+export default function Header(headerprops: HeaderProps) {
+	const [search, setLocalSearch] = useState<string>('')
 
 	return (
 		<AppBar position="static" className="bg-black dark:bg-gray-800 shadow-md">
@@ -28,6 +31,11 @@ export default function Header() {
 						placeholder="Search Movies"
 						size="small"
 						sx={{ width: '50%' }}
+						value={search}
+						onChange={(e) => { 
+							headerprops.setSearch(e.target.value)
+							setLocalSearch(e.target.value)
+						}}
 					/>
 					<div className="flex items-center space-x-2">
 						<Button 
