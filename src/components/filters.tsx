@@ -1,206 +1,239 @@
-import * as React from 'react';
-import {
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Typography,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Chip,
-  Button,
-  Divider
-} from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import CloseIcon from '@mui/icons-material/Close';
+import CloseIcon from '@mui/icons-material/Close'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { FormControlLabel, Radio, RadioGroup, TextField } from '@mui/material'
+import MuiAccordion, { AccordionProps } from '@mui/material/Accordion'
+import MuiAccordionDetails from '@mui/material/AccordionDetails'
+import MuiAccordionSummary, {
+	AccordionSummaryProps,
+	accordionSummaryClasses,
+} from '@mui/material/AccordionSummary'
+import Chip from '@mui/material/Chip'
+import { styled } from '@mui/material/styles'
+import Typography from '@mui/material/Typography'
+import * as React from 'react'
+
+const Accordion = styled((props: AccordionProps) => (
+	<MuiAccordion disableGutters elevation={0} square {...props} />
+))(({ theme }) => ({
+	border: `1px solid ${theme.palette.divider}`,
+	'&:not(:last-child)': {
+		borderBottom: 0,
+	},
+	'&::before': {
+		display: 'none',
+	},
+}))
+
+const AccordionSummary = styled((props: AccordionSummaryProps) => (
+	<MuiAccordionSummary
+		expandIcon={<ExpandMoreIcon />}
+		{...props}
+	/>
+))(({ theme }) => ({
+	backgroundColor: 'rgba(0, 0, 0, .03)',
+	flexDirection: 'row-reverse',
+	[`& .${accordionSummaryClasses.expandIconWrapper}.${accordionSummaryClasses.expanded}`]:
+    {
+    	transform: 'rotate(180deg)',
+    },
+	[`& .${accordionSummaryClasses.content}`]: {
+		marginLeft: theme.spacing(1),
+	},
+	...theme.applyStyles('dark', {
+		backgroundColor: 'rgba(255, 255, 255, .05)',
+	}),
+}))
+
+const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
+	padding: theme.spacing(2),
+	borderTop: '1px solid rgba(0, 0, 0, .125)',
+}))
 
 interface FiltersProps {
-  movieType: string[];
-  genre: string;
-  duration: string;
-  rating: string;
-  setMovieType: (type: string[]) => void;
-  setGenre: (genre: string) => void;
-  setDuration: (duration: string) => void;
-  setRating: (rating: string) => void;
+    types: Map<number, string>;
+    genres: Map<number, string>;
+
+    setSelectedTypes: (selectedTypes: number[]) => void;
+    setSelectedGenres: (selectedGenres: number[]) => void;
+    setMinDuration: (minDuration: number | null) => void;
+    setMaxDuration: (maxDuration: number | null) => void;
+    setMinRating: (minRating: number | null) => void;
+    setMaxRating: (maxRating: number | null) => void;
+	setStartYear: (startYear: number | null) => void;
+	setEndYear: (endYear: number | null) => void;
+	setIncludeAdult: (includeAdult: boolean) => void;
 }
 
-const Filters: React.FC<FiltersProps> = ({ movieType, genre, duration, rating, setMovieType, setGenre, setDuration, setRating }) => {
-  const [expanded, setExpanded] = React.useState<string | false>(false);
 
-  const handleExpandAll = () => {
-    setExpanded(expanded ? false : 'panel');
-  };
+export default function Filters(filters: FiltersProps) {
+	const [selectedTypes, setSelectedTypes] = React.useState<number[]>([2])
+	const [selectedGenres, setSelectedGenres] = React.useState<number[]>([])
+	const [minDuration] = React.useState<number | null>(null)
+	const [maxDuration] = React.useState<number | null>(null)
+	const [startYear] = React.useState<number | null>(null)
+	const [endYear] = React.useState<number | null>(null)
+	const [minRating] = React.useState<number | null>(null)
+	const [maxRating] = React.useState<number | null>(null)
+	const [includeAdult, setIncludeAdult] = React.useState<boolean>(false)
 
-  const handleChipClick = (type: string) => {
-    if (movieType.includes(type)) {
-      setMovieType(movieType.filter(t => t !== type));
-    } else {
-      setMovieType([...movieType, type]);
-    }
-  };
+	const handleTypeClick = (id: number) => {
+		if (selectedTypes.includes(id)) {
+			filters.setSelectedTypes(selectedTypes.filter(t => t !== id))
+			setSelectedTypes(selectedTypes.filter(t => t !== id))
+		} else {
+			filters.setSelectedTypes([...selectedTypes, id])
+			setSelectedTypes([...selectedTypes, id])
+		}
+	}
 
-  const titleTypes = [
-    "Movie", "TV Series", "Short", "TV Episode", "TV Mini Series", "TV Movie", "TV Special", "Video Game", "Video", "Music Video", "Podcast Series", "Podcast Episode"
-  ];
-  const genres = [
-    "Movie", "TV Series", "Short", "TV Episode", "TV Mini Series", "TV Movie", "TV Special", "Video Game", "Video", "Music Video", "Podcast Series", "Podcast Episode"
-  ];
+	const handleGenreClick = (id: number) => {
+		if (selectedGenres.includes(id)) {
+			filters.setSelectedGenres(selectedGenres.filter(t => t !== id))
+			setSelectedGenres(selectedGenres.filter(t => t !== id))
+		} else {
+			filters.setSelectedGenres([...selectedGenres, id])
+			setSelectedGenres([...selectedGenres, id])
+		}
+	}
 
-  return (
-    <div style={{ padding: '16px', border: '1px solid #ccc', borderRadius: '8px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <Typography variant="h6">Search Filters</Typography>
-        <Button onClick={handleExpandAll} endIcon={<ExpandMoreIcon />}>
-          {expanded ? 'Collapse all' : 'Expand all'}
-        </Button>
-      </div>
+	return (
+		<div>
+			<Accordion defaultExpanded>
+				<AccordionSummary aria-controls="panel1d-content" id="panel1d-header" >
+					<Typography component="span" className="font-bold">Title Type</Typography>
+				</AccordionSummary>
+				<AccordionDetails>
+					<div className="flex flex-wrap gap-2">
+						{Array.from(filters.types).map(([type_id, type_name]) => (
+							<Chip
+								key={type_id}
+								label={type_name}
+								clickable
+								onClick={() => handleTypeClick(type_id)}
+								onDelete={selectedTypes.includes(type_id) ? () => handleTypeClick(type_id) : undefined}
+								deleteIcon={selectedTypes.includes(type_id) ? <CloseIcon /> : undefined}
+								className={`border border-solid border-black ${selectedTypes.includes(type_id) ? 'bg-[#fad02c]' : 'bg-white'} hover:bg-[#fad02c]`}
+							/>
+						))}
+					</div>
+				</AccordionDetails>
+			</Accordion>
+			<Accordion>
+				<AccordionSummary aria-controls="panel2d-content" id="panel2d-header">
+					<Typography component="span" className="font-bold">Genres</Typography>
+				</AccordionSummary>
+				<AccordionDetails>
+					<div className="flex flex-wrap gap-2">
+						{Array.from(filters.genres).map(([genre_id, genre_name]) => (
+							<Chip
+								key={genre_id}
+								label={genre_name}
+								clickable
+								onClick={() => handleGenreClick(genre_id)}
+								onDelete={selectedGenres.includes(genre_id) ? () => handleGenreClick(genre_id) : undefined}
+								deleteIcon={selectedGenres.includes(genre_id) ? <CloseIcon /> : undefined}
+								className={`border-black border border-solid ${selectedGenres.includes(genre_id) ? 'bg-[#fad02c]' : 'bg-white'} hover:bg-[#fad02c]`}
+							/>
+						))}
+					</div>
+				</AccordionDetails>
+			</Accordion>
 
-      <Accordion expanded={expanded === 'panel1'} onChange={() => setExpanded(expanded === 'panel1' ? false : 'panel1')} sx={{ boxShadow: 'none', border: 'none' }}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography>Title Name</Typography>
-        </AccordionSummary>
-        <AccordionDetails style={{ padding: '0' }}>
-          <TextField
-            fullWidth
-            placeholder="e.g. The Godfather"
-          />
-        </AccordionDetails>
-      </Accordion>
-      <Accordion expanded={expanded === 'panel2'} onChange={() => setExpanded(expanded === 'panel2' ? false : 'panel2')} sx={{ boxShadow: 'none', border: 'none' }}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography>Title Type</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-            {titleTypes.map(type => (
-              <Chip
-                key={type}
-                label={type}
-                clickable
-                onClick={() => handleChipClick(type)}
-                onDelete={movieType.includes(type) ? () => handleChipClick(type) : undefined}
-                deleteIcon={movieType.includes(type) ? <CloseIcon sx={{color: 'black !important'}} /> : undefined}
-                sx={{
-                  backgroundColor: movieType.includes(type) ? '#fad02c' : 'white',
-                  border: '1px solid black',
-                  color: 'black',
-                  '&:hover': {
-                    backgroundColor: movieType.includes(type) ? '#fad02c' : '#fad02c'
-                  }
-                }}
-              />
-            ))}
-          </div>
-        </AccordionDetails>
-      </Accordion>
+			<Accordion defaultExpanded>
+				<AccordionSummary aria-controls="panel3d-content" id="panel3d-header">
+					<Typography component="span" className="font-bold">Duration</Typography>
+				</AccordionSummary>
+				<AccordionDetails>
+					<Typography component="span">In minutes</Typography>
+					<div className="flex flex-wrap gap-2">
+						<TextField
+							value={minDuration}
+							onChange={(e) => filters.setMinDuration(Number(e.target.value))}
+							placeholder="e.g. 1"
+							type="number"
+							className='flex-1'
+						/>
+						<Typography component="span" className='flex items-center'>to</Typography>
+						<TextField
+							value={maxDuration}
+							onChange={(e) => filters.setMaxDuration(Number(e.target.value))}
+							placeholder="e.g. 180"
+							type="number"
+							className='flex-1'
+						/>
+					</div>
+				</AccordionDetails>
+			</Accordion>
 
-      <Accordion sx={{ boxShadow: 'none', border: 'none' }} expanded={expanded === 'panel3'} onChange={() => setExpanded(expanded === 'panel3' ? false : 'panel3')}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography>Release Date</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <TextField
-            fullWidth
-            label="Release Date"
-            placeholder="dd/mm/yyyy"
-          />
-        </AccordionDetails>
-      </Accordion>
+			<Accordion>
+				<AccordionSummary aria-controls="panel3d-content" id="panel3d-header">
+					<Typography component="span" className="font-bold">Release Year</Typography>
+				</AccordionSummary>
+				<AccordionDetails>
+					<Typography component="span">In years</Typography>
+					<div className="flex flex-wrap gap-2">
+						<TextField
+							value={startYear}
+							onChange={(e) => filters.setStartYear(Number(e.target.value))}
+							placeholder="e.g. 1996"
+							type="number"
+							className='flex-1'
+						/>
+						<Typography component="span" className='flex items-center'>to</Typography>
+						<TextField
+							value={endYear}
+							onChange={(e) => filters.setEndYear(Number(e.target.value))}
+							placeholder="e.g. 2025"
+							type="number"
+							className='flex-1'
+						/>
+					</div>
+				</AccordionDetails>
+			</Accordion>
 
-      <Accordion sx={{ boxShadow: 'none', border: 'none' }} expanded={expanded === 'panel4'} onChange={() => setExpanded(expanded === 'panel4' ? false : 'panel4')}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography>IMDb Ratings</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <TextField
-            fullWidth
-            label="IMDb Ratings"
-            placeholder="e.g. 1.0 to 10.0"
-          />
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion sx={{ boxShadow: 'none', border: 'none' }} expanded={expanded === 'panel5'} onChange={() => setExpanded(expanded === 'panel5' ? false : 'panel5')}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography>Number of Votes</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <TextField
-            fullWidth
-            label="Number of Votes"
-            placeholder="e.g. 0 to 700000"
-          />
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion sx={{ boxShadow: 'none', border: 'none' }} expanded={expanded === 'panel6'} onChange={() => setExpanded(expanded === 'panel6' ? false : 'panel6')}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography>Genre</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-            {genres.map(type => (
-              <Chip
-                key={type}
-                label={type}
-                clickable
-                onClick={() => handleChipClick(type)}
-                onDelete={movieType.includes(type) ? () => handleChipClick(type) : undefined}
-                deleteIcon={movieType.includes(type) ? <CloseIcon sx={{color: 'black !important'}} /> : undefined}
-                sx={{
-                  backgroundColor: movieType.includes(type) ? '#fad02c' : 'white',
-                  border: '1px solid black',
-                  color: 'black',
-                  '&:hover': {
-                    backgroundColor: movieType.includes(type) ? '#fad02c' : '#fad02c'
-                  }
-                }}
-              />
-            ))}
-          </div>
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion sx={{ boxShadow: 'none', border: 'none' }} expanded={expanded === 'panel7'} onChange={() => setExpanded(expanded === 'panel7' ? false : 'panel7')}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography>Duration</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <TextField
-            fullWidth
-            label="Duration"
-            value={duration}
-            onChange={(e) => setDuration(e.target.value)}
-            placeholder="e.g. 90"
-          />
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion sx={{ boxShadow: 'none', border: 'none' }} expanded={expanded === 'panel8'} onChange={() => setExpanded(expanded === 'panel8' ? false : 'panel8')}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography>Rating</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <FormControl fullWidth>
-            <InputLabel>Rating</InputLabel>
-            <Select
-              value={rating}
-              onChange={(e) => setRating(e.target.value)}
-            >
-              <MenuItem value="">All</MenuItem>
-              <MenuItem value="4">4 stars and up</MenuItem>
-              <MenuItem value="3">3 stars and up</MenuItem>
-              <MenuItem value="2">2 stars and up</MenuItem>
-              <MenuItem value="1">1 star and up</MenuItem>
-            </Select>
-          </FormControl>
-        </AccordionDetails>
-      </Accordion>
-    </div>
-  );
-};
-
-export default Filters;
+			<Accordion defaultExpanded>
+				<AccordionSummary aria-controls="panel3d-content" id="panel3d-header">
+					<Typography component="span" className="font-bold">IMDb Ratings</Typography>
+				</AccordionSummary>
+				<AccordionDetails>
+					<div className="flex flex-wrap gap-2">
+						<TextField
+							value={minRating}
+							onChange={(e) => filters.setMinRating(Number(e.target.value))}
+							placeholder="e.g. 1"
+							type="number"
+							className='flex-1'
+						/>
+						<Typography component="span" className='flex items-center'>to</Typography>
+						<TextField
+							value={maxRating}
+							onChange={(e) => filters.setMaxRating(Number(e.target.value))}
+							placeholder="e.g. 9.8"
+							type="number"
+							className='flex-1'
+							inputProps={{ step: 0.1, min: 1, max: 10 }}
+						/>
+					</div>
+				</AccordionDetails>
+			</Accordion>
+			<Accordion defaultExpanded>
+				<AccordionSummary aria-controls="panel4d-content" id="panel4d-header">
+					<Typography component="span" className="font-bold">Adult titles</Typography>
+				</AccordionSummary>
+				<AccordionDetails>
+					<RadioGroup
+						row
+						value={includeAdult ? 'include' : 'exclude'}
+						onChange={(e) => {
+							filters.setIncludeAdult(e.target.value === 'include')
+							setIncludeAdult(e.target.value === 'include')
+						}}
+					>
+						<FormControlLabel value="exclude" control={<Radio />} label="Exclude" />
+						<FormControlLabel value="include" control={<Radio />} label="Include" />
+					</RadioGroup>
+				</AccordionDetails>
+			</Accordion>
+		</div>
+	)
+}

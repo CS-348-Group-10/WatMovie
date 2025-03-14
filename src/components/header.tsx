@@ -2,7 +2,7 @@ import { AppBar, Toolbar, Button, TextField } from '@mui/material'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
-import SideBarFilter from './sidebar-filter'
+import SideBarFilter from './sideBarFilter'
 
 export default function Header() {
 	const [search, setSearch] = useState<string>('')
@@ -12,7 +12,7 @@ export default function Header() {
 			<div>
 				<Toolbar className="flex justify-between">
 					<div className="flex items-center space-x-2">
-						<SideBarFilter />
+						{/* <SideBarFilter /> */}
 						<Link href="#" className="flex items-center">
 							<Image 
 								src="/logo.png" 

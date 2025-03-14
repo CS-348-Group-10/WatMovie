@@ -1,9 +1,9 @@
+import FavoriteIcon from '@mui/icons-material/Favorite'
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder'
 import Rating from '@mui/material/Rating'
+import styled from '@mui/material/styles/styled'
 import Typography from '@mui/material/Typography'
 import * as React from 'react'
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder'
-import FavoriteIcon from '@mui/icons-material/Favorite'
-import styled from '@mui/material/styles/styled'
 
 interface HeartVoteProps {
   value: number | null;
@@ -16,7 +16,7 @@ const StyledRating = styled(Rating)({
 	'& .MuiRating-iconHover': {
 	  color: '#ff3d47',
 	},
-});
+})
 
 export default function HeartVote({ value }: HeartVoteProps) {
 	return (
@@ -29,7 +29,7 @@ export default function HeartVote({ value }: HeartVoteProps) {
 				max={1}
 				icon={<FavoriteIcon fontSize="inherit" />}
 				emptyIcon={<FavoriteBorderIcon fontSize="inherit" />}
-            />
+			/>
 			<Typography variant="body2" color="text.secondary" className="p-2">{value ? `${value}`  : 'N/A'}</Typography>
 		</div>
 	)
