@@ -1,24 +1,28 @@
-import { AppBar, Toolbar, Button, Container, TextField } from '@mui/material'
+import { AppBar, Toolbar, Button, TextField } from '@mui/material'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import SideBarFilter from './sideBarFilter'
 
 export default function Header() {
 	const [search, setSearch] = useState<string>('')
 
 	return (
 		<AppBar position="static" className="bg-black dark:bg-gray-800 shadow-md">
-			<Container maxWidth={false}>
+			<div>
 				<Toolbar className="flex justify-between">
-					<Link href="#" className="flex items-center">
-						<Image 
-							src="/logo.png" 
-							className="mr-3 h-10" 
-							alt="WatMovie Logo"
-							width={80}
-							height={100}
-						/>
-					</Link>
+					<div className="flex items-center space-x-2">
+						{/* <SideBarFilter /> */}
+						<Link href="#" className="flex items-center">
+							<Image 
+								src="/logo.png" 
+								className="mr-3 h-10" 
+								alt="WatMovie Logo"
+								width={80}
+								height={100}
+							/>
+						</Link>
+					</div>
 					<TextField
 						className="bg-white rounded-md"
 						placeholder="Search Movies"
@@ -33,7 +37,7 @@ export default function Header() {
 						</Button>
 					</div>
 				</Toolbar>
-			</Container>
+			</div>
 		</AppBar>
 	)
 }
