@@ -37,8 +37,8 @@ export default function MovieCard({ id, title, rating, genres, duration, votes }
 	}, [id])
 
 	return (
-		<Link className="min-w-full min-h-full" href={`/movies/${id}`}>
-		<Card className="min-w-full min-h-full rounded-lg shadow-lg">
+		<Card className="w-full h-full rounded-lg shadow-lg">
+			<Link className="min-w-full min-h-full" href={`/movies/${id}`}>
 			{posterUrl && (
 				<div className="relative w-full h-96">
 					<Image
@@ -75,7 +75,8 @@ export default function MovieCard({ id, title, rating, genres, duration, votes }
 					</Box>
 				</Box>
 			</CardContent>
+			</Link>
 		</Card>
-		</Link>
+		
 	)
 }

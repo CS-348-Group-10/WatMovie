@@ -34,7 +34,7 @@ export default function Header(headerprops: HeaderProps) {
 				<Toolbar className="flex justify-between">
 					<div className="flex items-center space-x-2">
 						{/* <SideBarFilter /> */}
-						<Link href="#" className="flex items-center">
+						<Link href="/" className="flex items-center">
 							<Image 
 								src="/logo.png" 
 								className="mr-3 h-10" 
