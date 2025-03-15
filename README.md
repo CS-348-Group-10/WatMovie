@@ -42,10 +42,10 @@ npm install
 3. Download the appropriate datasets from IMDb
 
     Navigate to `https://datasets.imdbws.com/` and download the following 4 tsv files:
-    - title.basics.tsv.gz [rename this to `title.tsv`]
-    - name.basics.tsv.gz
-    - title.principals.tsv.gz
-    - title.ratings.tsv.gz
+    - title.basics.tsv [rename this to `title.tsv`]
+    - name.basics.tsv
+    - title.principals.tsv
+    - title.ratings.tsv
 
     Move these 4 tsv files to the `public` folder.
 
