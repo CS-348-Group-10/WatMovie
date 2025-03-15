@@ -8,7 +8,27 @@ export interface Title {
     duration: number | null,
     rating: number | null,
     votes: number | null,
-    genre_ids: number[] | null
+    genre_ids: number[] | null,
+    cast: Cast[] | null
+}
+
+export type Genre = {
+    id: string,
+    name: string
+}
+
+export type Cast = {
+    id: string,
+    name: string,
+    ordering: number,
+    category_id: number,
+    job: string,
+    characters: string
+}
+
+export type MemberCategory = {
+    id: string,
+    name: string
 }
 
 export enum SortType {

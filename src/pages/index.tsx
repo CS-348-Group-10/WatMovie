@@ -90,18 +90,6 @@ export default function Home() {
 		fetchMovies()
 	}, [selectedTypes, minDuration, maxDuration, startYear, endYear, minRating, maxRating, selectedGenres, search, showAdult, minVotes])
 
-	const fetchRandomMovie = async () => {
-		setLoading(true)
-		try {
-			const res = await fetch('/api/random-title')
-			const data = await res.json()
-			setMovies([data])
-		} catch (error) {
-			console.error('Failed to fetch random movie:', error)
-		}
-		setLoading(false)
-	}
-
 	return (
 		<div className="container p-1 text-black dark:text-white min-w-full">
 			<div className="fixed top-0 left-0 w-full bg-white shadow-md z-50">
@@ -131,7 +119,7 @@ export default function Home() {
 					{moviesLoaded || loading ? (
 						<p>Loading...</p>
 					) : (
-						<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-12  place-items-center">
+						<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-12 place-items-center">
 							{movies.map((movie) => (
 								<MovieCard
 									key={movie.id}
