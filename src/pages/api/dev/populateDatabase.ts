@@ -15,6 +15,9 @@ import { insertRatingQuery } from '@/db/queries/ratings/insertRatings'
 import { insertTitleQuery } from '@/db/queries/titles/insertTitle'
 import { getAllTitleTypesQuery } from '@/db/queries/titleTypes/getAllTitleTypes'
 import { insertTitleTypeQuery } from '@/db/queries/titleTypes/insertTitleType'
+import { insertUserQuery } from '@/db/queries/users/insertUser'
+import { insertWatchlistQuery } from '@/db/queries/watchlists/insertWatchlist'
+import { insertUserReviewQuery } from '@/db/queries/userReviews/insertUserReview'
 
 const TSV_TITLE_FILE = path.join(process.cwd(), 'public', 'title.tsv')
 const TSV_RATINGS_FILE = path.join(process.cwd(), 'public', 'title.ratings.tsv')
@@ -468,6 +471,83 @@ const insertProductionTeam = async (
 	}
 }
 
+const insertUserAndRelatedDate = async (
+	client: any,
+	titleIds: Set<string> | null = null
+) => {
+	try {
+		await client.query('BEGIN')
+
+		for (let i = 0; i < 100; i++) {
+			await client.query(
+				insertUserQuery,
+				[
+					i, 
+					`Person ${i}`,
+					`email${i}@abc.com`
+				]
+			)
+		}
+
+		const rng = seedrandom('2025')
+
+		if (!titleIds) {
+			titleIds = new Set<string>()
+			for (let i = 0; i < 100; i++) {
+				const randomNum = Math.floor(rng() * 10000000) // 0 to 9999999
+				const randomTitleId = `tt${randomNum.toString().padStart(7, '0')}`
+				titleIds.add(randomTitleId)
+			}
+		}
+
+		const titleIdsArray = Array.from(titleIds)
+
+		for (let i = 0; i < 100; i++) {
+			const numWatchlist = Math.floor(rng() * 6) // generates 0 to 5 watchlist entries per user
+			// Create a copy of titleIdsArray to ensure unique titleIds for this user's watchlist
+			const availableTitleIds = [...titleIdsArray]
+			for (let j = 0; j < numWatchlist; j++) {
+				const randomIndex = Math.floor(rng() * availableTitleIds.length)
+				const randomTitleId = availableTitleIds.splice(randomIndex, 1)[0]
+				await client.query(
+					insertWatchlistQuery,
+					[
+						i, 
+						randomTitleId
+					]
+				)
+			}
+		}
+
+		// Insert review entries with a random titleId (unique per user) and a random rating between 1 and 10,
+		// with up to 5 reviews per user
+		for (let i = 0; i < 100; i++) {
+			const numReviews = Math.floor(rng() * 6) // generates 0 to 5 reviews per user
+			// Create a copy of titleIdsArray to ensure unique titleIds for this user's reviews
+			const availableTitleIds = [...titleIdsArray]
+			for (let j = 0; j < numReviews; j++) {
+				const randomIndex = Math.floor(rng() * availableTitleIds.length)
+				const randomTitleId = availableTitleIds.splice(randomIndex, 1)[0]
+				const randomRating = Math.floor(rng() * 10) + 1 // random rating between 1 and 10
+				await client.query(
+					insertUserReviewQuery,
+					[
+						i,                    // user id or review id depending on design
+						randomTitleId,
+						randomRating,
+						`Great movie! ${i} review ${j}`  // review content (adjust as needed)
+					]
+				)
+			}
+		}
+
+		await client.query('COMMIT')
+	} catch (error) {
+		await client.query('ROLLBACK')
+		throw new Error('Database insert failed [users]')
+	}
+}
+
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'POST') {
@@ -489,6 +569,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		const { genreNameToIdMap, titleTypeToIdMap } = await getGenreAndTitleTypeMapping(client)
 		const { titleIds } = await insertTitles(client, isProduction, genreNameToIdMap, titleTypeToIdMap)
 		console.log('🚀 titles populated')
+
+		await insertUserAndRelatedDate(client, titleIds)
+		console.log('🚀 users, watchlists, and reviews populated')
 
 		await insertRatings(client, titleIds)
 		console.log('🚀 ratings populated')
