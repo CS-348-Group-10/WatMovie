@@ -36,20 +36,68 @@ npm install
     DB_NAME=postgres
     DB_PASSWORD=watmovie
     DB_PORT=5432
+    NEXT_PUBLIC_POSTER_API_KEY=8180dbba
     ```
 
-3. Run the application to create the database schema.
+3. Download the appropriate datasets from IMDb
 
-```bash
-npm run dev
-```
+    Navigate to `https://datasets.imdbws.com/` and download the following 4 tsv files:
+    - title.basics.tsv.gz [rename this to `title.tsv`]
+    - name.basics.tsv.gz
+    - title.principals.tsv.gz
+    - title.ratings.tsv.gz
 
-Next, we need to send an empty POST request to `http://localhost:3000/api/dev/runMigrations` to create the database schema.
+    Move these 4 tsv files to the `public` folder.
 
-Next, we need to send an empty POST request to `http://localhost:3000/api/dev/populateTestData` to populate the database with test data.
+4. Run the server to create the database schema.
+
+    ```bash
+    npm run dev
+    ```
+
+    Next, we need to send an empty POST request to `http://localhost:3000/api/dev/runMigrations` to create the database schema.
+
+5. Populate the database
+
+- **To load the sample database:**
+    
+    Send an empty POST request to 
+    
+    `http://localhost:3000/api/dev/populateDatabase` 
+    
+    to populate the database with the sample data.
+
+- **To load the production dataset:**
+    
+    In the above POST request, set the query parameter `isProduction=true` i.e. send an empty POST request to 
+    
+    `http://localhost:3000/api/dev/populateDatabase?isProduction=true` 
+    
+    to populate the database with the production dataset.
 
 ### Step 4: Open the application
 
 Check the application by opening the `http://localhost:3000` in your browser. You can see the following page:
 
 ![WatMovie](public/watmovie.png)
+
+## List of Supported Features
+1. **Title Browsing:**
+
+    Browse and filter movies, TV shows, and titles by genre, type, duration, and release year with pagination support.
+
+2. **Random Title Selection**
+
+    Discover new movies with a random title generator from the database.
+
+3. **Detailed Description Page**
+
+    View in-depth title details, including cast information, on a dedicated page.
+
+4. **Watchlist**
+
+    Save and manage a personal watchlist for current and future viewing.
+
+5. **User Reviews**
+
+    Rate and review movies independently of IMDb to share opinions and guide others.
