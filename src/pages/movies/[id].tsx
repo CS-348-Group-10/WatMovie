@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { Title, Genre, Cast, MemberCategory } from "@/types";
 import Image from 'next/image'
-import { CircularProgress, Card, CardContent, Typography, Chip, Box, ListItem, List, ListItemText } from "@mui/material";
+import { CircularProgress, Container, CardContent, Typography, Chip, Box, ListItem, List, ListItemText } from "@mui/material";
 import Header from '../../components/header';
 
 const MovieDetails = () => {
@@ -108,15 +108,15 @@ const MovieDetails = () => {
     }
 
     return (
-        <div className="bg-gray-100">
+        <div>
             <div className="fixed top-0 left-0 w-full bg-white shadow-md z-50">
                 {/* Header Component */}
                 <Header 
                     setSearch={setSearch}
                 />
             </div>  
-            <div className="flex bg-gray-100 m-20">
-                <Card className="max-w-6xl mx-auto shadow-lg flex flex-col md:flex-row">
+            <div className="flex my-20">
+                <Container className="max-w-6xl shadow-sm flex flex-col md:flex-row">
                     {/* Left Section: movie Poster with Black Background */}
                     <div className="w-full md:w-1/3 bg-black flex justify-center items-center p-4 rounded-l-lg">
                         {moviePosterUrl && (
@@ -147,7 +147,7 @@ const MovieDetails = () => {
                             {movie.genre_ids && movie.genre_ids.length > 0 &&
                                 (
                                     movie.genre_ids?.map((genre) => (
-                                        <Chip key={genre} label={fetchGenre(genre)?.name} color="primary" />
+                                        <Chip key={genre} label={fetchGenre(genre)?.name} className="bg-[#fad02c]" />
                                     )
                             ))}
                         </div>
@@ -171,7 +171,7 @@ const MovieDetails = () => {
                         )}
 
                         {/* Cast Section */}
-                        {movie.cast && movie.cast.length > 0 && (
+                        {movie.cast && movie.cast.length > 0 ? (
                             <div className="mt-6">
                                 <h3 className="font-semibold text-lg">Featured Cast</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
@@ -192,9 +192,11 @@ const MovieDetails = () => {
                                     ))}
                                 </div>
                             </div>
+                        ) : (
+                            <p className="mt-6 text-lg font-semibold">No cast information available</p>
                         )}
                     </CardContent>
-                </Card>
+                </Container>
             </div>
         </div>
     );
