@@ -1,7 +1,7 @@
-SELECT 
-    T.title_id AS id,
+SELECT
+    T.title_id,
     T.type_id,
-    T.name AS title,
+    T.name as title,
     T.is_adult,
     T.start_year,
     T.end_year,
@@ -11,11 +11,24 @@ SELECT
     CASE
         WHEN COUNT(GT.genre_id) = 0 THEN NULL
         ELSE ARRAY_AGG(GT.genre_id)
-    END AS genre_ids
+    END AS genre_ids,
+    (
+        SELECT jsonb_agg(jsonb_build_object(
+            'id', PT.member_id,
+            'name', PM.primary_name,
+            'ordering', PT.ordering,
+            'category_id', PT.category_id,
+            'job', PT.job,
+            'characters', PT.characters
+        ))
+        FROM production_team PT
+        LEFT JOIN production_members PM ON PT.member_id = PM.member_id
+        WHERE PT.title_id = T.title_id
+    ) AS cast
 FROM titles T
 LEFT JOIN ratings R ON T.title_id = R.title_id
 LEFT JOIN genres_titles GT ON T.title_id = GT.title_id
-WHERE 2000::INTEGER IS NULL OR T.start_year >= 2000
+WHERE T.title_id = 'tt0000200'
 GROUP BY
     T.title_id,
     T.type_id,

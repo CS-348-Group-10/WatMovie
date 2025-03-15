@@ -15,7 +15,7 @@ SELECT
 FROM titles T
 LEFT JOIN ratings R ON T.title_id = R.title_id
 LEFT JOIN genres_titles GT ON T.title_id = GT.title_id
-WHERE 2000::INTEGER IS NULL OR T.start_year >= 2000
+WHERE 2000 IS NULL OR T.start_year >= 2000
 GROUP BY
     T.title_id,
     T.type_id,
@@ -25,4 +25,5 @@ GROUP BY
     T.end_year,
     T.runtime_minutes,
     R.sum_of_votes,
-    R.total_votes;
+    R.total_votes
+LIMIT 10;

@@ -1,0 +1,3 @@
+| title_id  | type_id | name                        | is_adult | start_year | end_year | runtime_minutes |
+| --------- | ------- | --------------------------- | -------- | ---------- | -------- | --------------- |
+| tt4758304 | 5       | Episode dated 29 April 1970 | false    | 1970       | null     | 80              |
