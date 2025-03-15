@@ -1,0 +1,12 @@
+| id         | type_id | title                              | is_adult | start_year | end_year | duration | rating | votes | genre_ids |
+| ---------- | ------- | ---------------------------------- | -------- | ---------- | -------- | -------- | ------ | ----- | --------- |
+| tt34662430 | 5       | Waar zijn de micro's?              | false    | 2024       | null     | null     | null   | null  | [22,16,8] |
+| tt33029014 | 5       | Welcome to the Fair                | false    | 2024       | null     | null     | 7      | 17    | [27]      |
+| tt31541133 | 5       | Duggie's KFC Pizza!                | false    | 2024       | null     | null     | null   | null  | [4,17,18] |
+| tt32874245 | 5       | Lia Lin Loves Doing Men for Sports | true     | 2024       | null     | null     | null   | null  | [8,28]    |
+| tt33307979 | 1       | Mermaids, Beaches and Dreams       | false    | 2024       | null     | null     | null   | null  | [2,9]     |
+| tt33040256 | 5       | Episode #10.74                     | false    | 2024       | null     | null     | null   | null  | [8]       |
+| tt32982424 | 5       | Girls Supporting Girls             | false    | 2023       | null     | null     | null   | null  | [7]       |
+| tt27495409 | 2       | A lumine motus                     | false    | 2023       | null     | 69       | null   | null  | [1]       |
+| tt30889918 | 5       | Amb la mosca al nas                | false    | 2023       | null     | null     | null   | null  | [12]      |
+| tt21318440 | 5       | Jesse Pony                         | true     | 2022       | null     | 46       | null   | null  | [28]      |

@@ -1,0 +1,6 @@
+| user_id | title_id   | type_id | name                                                   | is_adult | start_year | end_year | runtime_minutes |
+| ------- | ---------- | ------- | ------------------------------------------------------ | -------- | ---------- | -------- | --------------- |
+| 6       | tt32489336 | 5       | MANCHESTER UNITED vs ARSENAL Live with MARK GOLDBRIDGE | false    | 2024       | null     | null            |
+| 6       | tt23622768 | 9       | The Series of Series                                   | false    | 2022       | null     | null            |
+| 6       | tt10548874 | 5       | Queen of the Night                                     | false    | 2019       | null     | null            |
+| 6       | tt6564154  | 5       | Radio Star Muesli Bar                                  | false    | 2015       | null     | null            |

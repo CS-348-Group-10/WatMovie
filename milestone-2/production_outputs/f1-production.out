@@ -1,0 +1,12 @@
+| id        | type_id | title                      | is_adult | start_year | end_year | duration | rating | votes | genre_ids |
+| --------- | ------- | -------------------------- | -------- | ---------- | -------- | -------- | ------ | ----- | --------- |
+| tt0163944 | 7       | Labyrinten                 | false    | 2000       | 2000     | 259      | 5.7    | 37    | [8,23]    |
+| tt0168721 | 1       | Meglét                     | false    | 2006       | null     | 17       | null   | null  | [2,8]     |
+| tt0169411 | 2       | Üvegvilágom                | false    | 2001       | null     | null     | null   | null  | [1]       |
+| tt0180679 | 2       | Escanaba in da Moonlight   | false    | 2001       | null     | 91       | 6.3    | 2079  | [4,9]     |
+| tt0182295 | 2       | Love's Labour's Lost       | false    | 2000       | null     | 93       | 5.9    | 5000  | [4,5,22]  |
+| tt0194706 | 4       | Bleib doch zum Frühstück   | false    | 2000       | null     | null     | null   | null  | [4]       |
+| tt0206087 | 2       | Liberate i pesci!          | false    | 2000       | null     | 93       | 6.2    | 202   | [4]       |
+| tt0209264 | 4       | Python                     | false    | 2000       | null     | 100      | 3.7    | 4090  | [4,10,18] |
+| tt0210013 | 4       | Dreams in the Attic        | false    | 2000       | null     | 87       | 4.5    | 121   | [8]       |
+| tt0210665 | 2       | Enfermeiras no Estado Novo | false    | 2000       | null     | null     | null   | null  | [1]       |
