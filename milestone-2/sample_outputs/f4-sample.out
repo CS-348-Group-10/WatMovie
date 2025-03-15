@@ -1,0 +1,3 @@
+| user_id | title_id   | type_id | name                | is_adult | start_year | end_year | runtime_minutes |
+| ------- | ---------- | ------- | ------------------- | -------- | ---------- | -------- | --------------- |
+| 8       | tt17528314 | 5       | Hela skiten är koko | false    | 2021       | null     | 29              |
