@@ -81,10 +81,10 @@ Check the application by opening the `http://localhost:3000` in your browser. Yo
 
 ![WatMovie](public/watmovie.png)
 
-## List of Supported Features
+## List of Currently Supported Features
 1. **Title Browsing:**
 
-    Browse and filter movies, TV shows, and titles by genre, type, duration, and release year with pagination support.
+    Browse a collection of movies through a searchable and filterable interface.
 
 2. **Random Title Selection**
 
@@ -93,6 +93,8 @@ Check the application by opening the `http://localhost:3000` in your browser. Yo
 3. **Detailed Description Page**
 
     View in-depth title details, including cast information, on a dedicated page.
+
+## List of Planned Features
 
 4. **Watchlist**
 
