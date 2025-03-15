@@ -1,0 +1,124 @@
+# Output represented in JSON format for easier readibility
+[
+    {
+        "title_id": "tt7364924",
+        "type_id": 5,
+        "title": "Bedtime",
+        "is_adult": false,
+        "start_year": 2001,
+        "end_year": null,
+        "duration": null,
+        "rating": null,
+        "votes": null,
+        "genre_ids": [
+            3,
+            16
+        ],
+        "cast": [
+            {
+                "id": "nm0007920",
+                "job": null,
+                "name": "Russ Abbot",
+                "ordering": 3,
+                "characters": "[\"The Sleeping Policeman (1999-2002)\"]",
+                "category_id": 8
+            },
+            {
+                "id": "nm0007920",
+                "job": null,
+                "name": "Russ Abbot",
+                "ordering": 2,
+                "characters": "[\"Tech\"]",
+                "category_id": 8
+            },
+            {
+                "id": "nm0007920",
+                "job": null,
+                "name": "Russ Abbot",
+                "ordering": 1,
+                "characters": "[\"Narrator\"]",
+                "category_id": 8
+            },
+            {
+                "id": "nm0068687",
+                "job": null,
+                "name": "Charlotte Bellamy",
+                "ordering": 5,
+                "characters": "[\"Daisy\"]",
+                "category_id": 9
+            },
+            {
+                "id": "nm0068687",
+                "job": null,
+                "name": "Charlotte Bellamy",
+                "ordering": 4,
+                "characters": "[\"Buddy\"]",
+                "category_id": 9
+            },
+            {
+                "id": "nm0424644",
+                "job": null,
+                "name": "Brian Johnson",
+                "ordering": 10,
+                "characters": null,
+                "category_id": 2
+            },
+            {
+                "id": "nm0680333",
+                "job": null,
+                "name": "Dave Benson Phillips",
+                "ordering": 8,
+                "characters": "[\"Jack Hammer\"]",
+                "category_id": 8
+            },
+            {
+                "id": "nm1344043",
+                "job": null,
+                "name": "Chris Jarvis",
+                "ordering": 7,
+                "characters": "[\"Amber & Scarlett\"]",
+                "category_id": 8
+            },
+            {
+                "id": "nm1344043",
+                "job": null,
+                "name": "Chris Jarvis",
+                "ordering": 6,
+                "characters": "[\"Hot Rodney\"]",
+                "category_id": 8
+            },
+            {
+                "id": "nm1469295",
+                "job": null,
+                "name": "Emma Tate",
+                "ordering": 9,
+                "characters": "[\"Half-Pint\"]",
+                "category_id": 9
+            },
+            {
+                "id": "nm1895491",
+                "job": "producer",
+                "name": "Nigel Stone",
+                "ordering": 13,
+                "characters": null,
+                "category_id": 3
+            },
+            {
+                "id": "nm1895491",
+                "job": null,
+                "name": "Nigel Stone",
+                "ordering": 11,
+                "characters": null,
+                "category_id": 2
+            },
+            {
+                "id": "nm2266623",
+                "job": null,
+                "name": "Paul Larson",
+                "ordering": 12,
+                "characters": null,
+                "category_id": 6
+            }
+        ]
+    }
+]
