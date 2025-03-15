@@ -62,6 +62,7 @@ interface FiltersProps {
 	setStartYear: (startYear: number | null) => void;
 	setEndYear: (endYear: number | null) => void;
 	setIncludeAdult: (includeAdult: boolean) => void;
+	setMinVotes: (minVotes: number | null) => void;
 }
 
 
@@ -75,6 +76,7 @@ export default function Filters(filters: FiltersProps) {
 	const [minRating] = React.useState<number | null>(null)
 	const [maxRating] = React.useState<number | null>(null)
 	const [includeAdult, setIncludeAdult] = React.useState<boolean>(false)
+	const [minVotes] = React.useState<number | null>(null)
 
 	const handleTypeClick = (id: number) => {
 		if (selectedTypes.includes(id)) {
@@ -232,6 +234,23 @@ export default function Filters(filters: FiltersProps) {
 						<FormControlLabel value="exclude" control={<Radio />} label="Exclude" />
 						<FormControlLabel value="include" control={<Radio />} label="Include" />
 					</RadioGroup>
+				</AccordionDetails>
+			</Accordion>
+			<Accordion defaultExpanded>
+				<AccordionSummary aria-controls="panel3d-content" id="panel3d-header">
+					<Typography component="span" className="font-bold">Number of votes</Typography>
+				</AccordionSummary>
+				<AccordionDetails>
+					<Typography component="span">Minimum votes:</Typography>
+					<div className="flex flex-wrap gap-2">
+						<TextField
+							value={minVotes}
+							onChange={(e) => filters.setMinVotes(Number(e.target.value))}
+							placeholder="e.g. 1"
+							type="number"
+							className='flex-1'
+						/>
+					</div>
 				</AccordionDetails>
 			</Accordion>
 		</div>
