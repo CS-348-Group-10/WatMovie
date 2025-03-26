@@ -8,6 +8,9 @@ import * as React from 'react'
 import HeartVote from './heartVote'
 import MovieRating from './rating'
 import Link from 'next/link'
+import IconButton from '@mui/material/IconButton'
+import AddIcon from '@mui/icons-material/Add'
+import CheckIcon from '@mui/icons-material/Check'
 
 interface MovieCardProps {
   id: string;
@@ -20,6 +23,7 @@ interface MovieCardProps {
 
 export default function MovieCard({ id, movie, rating, genres, duration, votes }: MovieCardProps) {
 	const [posterUrl, setPosterUrl] = React.useState<string>('')
+	const [isInWatchlist, setIsInWatchlist] = React.useState(false)
 
 	React.useEffect(() => {
 		const fetchPoster = async () => {
@@ -36,6 +40,13 @@ export default function MovieCard({ id, movie, rating, genres, duration, votes }
 		fetchPoster()
 	}, [id])
 
+	const handleAddToWatchlist = (e: React.MouseEvent) => {
+		e.preventDefault(); // Prevent navigation when clicking the button
+		setIsInWatchlist(!isInWatchlist);
+		// TODO: Implement add/remove from watchlist logic
+		console.log(isInWatchlist ? 'Removing from watchlist:' : 'Adding to watchlist:', id);
+	};
+
 	return (
 		<Card className="w-full h-full rounded-lg shadow-lg">
 			<Link className="min-w-full min-h-full" href={`/movies/${id}`}>
@@ -51,6 +62,17 @@ export default function MovieCard({ id, movie, rating, genres, duration, votes }
 						className="rounded-t-lg"
 						sizes="(max-width: 768px) 100vw, 50vw"
 					/>
+					<IconButton
+						onClick={handleAddToWatchlist}
+						className={`absolute top-2 right-2 text-white shadow-lg transition-colors duration-200 ${
+							isInWatchlist 
+								? 'bg-green-500 hover:bg-green-600' 
+								: 'bg-[#FFB800] hover:bg-[#FFA500]'
+						}`}
+						size="large"
+					>
+						{isInWatchlist ? <CheckIcon /> : <AddIcon />}
+					</IconButton>
 				</div>
 			)}
 			<CardContent className="p-4">
