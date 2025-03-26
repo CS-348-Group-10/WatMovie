@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import pool from '@/db'
-import { getRandomTitleQuery } from '@/db/queries/titles/getRandomTitle'
+import { getRandomMovieQuery } from '@/db/queries/titles/getRandomMovie'
 
 export default async function handler(
 	req: NextApiRequest, 
@@ -12,7 +12,7 @@ export default async function handler(
 	}
 
 	try {
-		const { rows } = await pool.query(getRandomTitleQuery)
+		const { rows } = await pool.query(getRandomMovieQuery)
 		res.status(200).json(rows[0])
 	} catch (err) {
 		console.error(err)

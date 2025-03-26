@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import pool from '@/db'
-import { buildGetTitlesByPageQuery } from '@/db/queries/titles/getTitlesByPage'
+import { buildGetMoviesByPageQuery } from '@/db/queries/titles/getMoviesByPage'
 import { SortOrder, SortType } from '@/types'
 
 const parseIds = (query: string | string[] | undefined): number[] | null => {
@@ -90,7 +90,7 @@ export default async function handler(
 		]
 
 		const { rows } = await pool.query(
-			buildGetTitlesByPageQuery(sanitizedSortType, sanitizedSortOrder),
+			buildGetMoviesByPageQuery(sanitizedSortType, sanitizedSortOrder),
 			baseParams
 		)
 		res.status(200).json(rows)

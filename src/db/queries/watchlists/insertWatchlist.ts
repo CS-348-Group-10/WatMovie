@@ -1,8 +1,8 @@
 export const insertWatchlistQuery =
 `
 INSERT INTO watchlists (
-    user_id,
-    title_id
+    uid,
+    mid
 ) VALUES (
     $1,
     $2
