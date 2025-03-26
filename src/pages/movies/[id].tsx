@@ -20,7 +20,8 @@ import BrushIcon from '@mui/icons-material/Brush';
 import BuildIcon from '@mui/icons-material/Build';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 
-const snakeToCapitalized = (str: string): string => {
+const snakeToCapitalized = (str: string | undefined): string => {
+    if (!str) return '';
     return str
         .split('_') // Split by underscore
         .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize each word

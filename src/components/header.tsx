@@ -62,23 +62,31 @@ export default function Header(headerprops: HeaderProps) {
 						</Button>
 					</div> */}
 					<div className="flex items-center space-x-2">
-        {/* Random Movie Button */}
-        <Button
-          className="text-white border-gray-300 hover:bg-gray-800 rounded-xl flex items-center"
-          onClick={fetchRandomMovie}
-          disabled={loading}
-        >
-          🎲 {loading ? "Loading..." : "Random"}
-        </Button>
+						{/* Random Movie Button */}
+						<Button
+							className="text-white border-gray-300 hover:bg-gray-800 rounded-xl flex items-center"
+							onClick={fetchRandomMovie}
+							disabled={loading}
+						>
+							🎲 {loading ? "Loading..." : "Random"}
+						</Button>
 
-        {/* Login Button */}
-        <Button 
-          className="text-white border-gray-300 hover:bg-gray-800 rounded-xl"
-          onClick={() => router.push('/auth')}
-        >
-          Log in
-        </Button>
-      </div>
+						{/* Watchlist Button */}
+						<Button
+							className="text-white border-gray-300 hover:bg-gray-800 rounded-xl flex items-center"
+							onClick={() => router.push('/watchlist')}
+						>
+							📋 Watchlist
+						</Button>
+
+						{/* Login Button */}
+						<Button 
+							className="text-white border-gray-300 hover:bg-gray-800 rounded-xl"
+							onClick={() => router.push('/auth')}
+						>
+							Log in
+						</Button>
+					</div>
 				</Toolbar>
 			</div>
 		</AppBar>
