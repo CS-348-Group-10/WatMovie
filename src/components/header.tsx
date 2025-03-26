@@ -55,15 +55,14 @@ export default function Header(headerprops: HeaderProps) {
 							setLocalSearch(e.target.value)
 						}}
 					/>
-					{/* <div className="flex items-center space-x-2">
+					{/* { <div className="flex items-center space-x-2">
 						<Button 
 							className="text-white dark:text-white border-gray-300 dark:border-gray-700 hover:bg-gray-800 dark:hover:bg-gray-700 rounded-xl"
-						>
-                    Log in
+							onClick={() => router.push('/auth')}>
+                    	Log in
 						</Button>
-					</div>
-					 */}
-					 <div className="flex items-center space-x-2">
+					</div> */}
+					<div className="flex items-center space-x-2">
         {/* Random Movie Button */}
         <Button
           className="text-white border-gray-300 hover:bg-gray-800 rounded-xl flex items-center"
@@ -76,6 +75,7 @@ export default function Header(headerprops: HeaderProps) {
         {/* Login Button */}
         <Button 
           className="text-white border-gray-300 hover:bg-gray-800 rounded-xl"
+          onClick={() => router.push('/auth')}
         >
           Log in
         </Button>
