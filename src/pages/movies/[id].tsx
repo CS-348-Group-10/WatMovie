@@ -19,7 +19,13 @@ import MusicNoteIcon from '@mui/icons-material/MusicNote';
 import BrushIcon from '@mui/icons-material/Brush';
 import BuildIcon from '@mui/icons-material/Build';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+
+const snakeToCapitalized = (str: string): string => {
+    return str
+        .split('_') // Split by underscore
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize each word
+        .join(' '); // Join with space
+}
 
 const MovieDetails = () => {
     const router = useRouter();
@@ -70,7 +76,7 @@ const MovieDetails = () => {
         };
 
         const fetchAllMemberCategories = async () => {
-            const res = await fetch('/api/member-categories');
+            const res = await fetch('/api/movie-roles');
             const data = await res.json();
             setMemberCategories(data);
         };
@@ -189,8 +195,8 @@ const MovieDetails = () => {
                                                 case 5: return <MusicNoteIcon className="text-yellow-500" />; // composer
                                                 case 6: return <TheaterComedyIcon className="text-green-500" />; // writer
                                                 case 7: return <EditIcon className="text-orange-500" />; // editor
-                                                case 9: return <ManIcon className="text-blue-500" />; // actor
-                                                case 8: return <WomanIcon className="text-pink-500" />; // actress
+                                                case 8: return <ManIcon className="text-blue-500" />; // actor
+                                                case 9: return <WomanIcon className="text-pink-500" />; // actress
                                                 case 10: return <BrushIcon className="text-indigo-500" />; // production_designer
                                                 case 11: return <MoreHorizIcon className="text-gray-400" />; // archive_footage
                                                 case 12: return <MoreHorizIcon className="text-gray-400" />; // casting_director
@@ -220,14 +226,14 @@ const MovieDetails = () => {
                                                                 className="text-gray-600 text-sm mb-1"
                                                                 variant="body2"
                                                             >
-                                                                as {actor.characters}
+                                                                as {actor.characters.replace(/^\["|"\]$/g, '')}
                                                             </Typography>
                                                         )}
                                                         <Typography 
                                                             className="text-gray-500 text-sm"
                                                             variant="body2"
                                                         >
-                                                            {memberCategories[actor.role_id]?.name}
+                                                            {snakeToCapitalized(memberCategories[actor.role_id - 1]?.name)}
                                                         </Typography>
                                                     </div>
                                                 </div>
