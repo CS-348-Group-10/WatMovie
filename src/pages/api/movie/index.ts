@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import pool from '@/db'
-import { getMovieByIdQuery } from '@/db/queries/titles/getMovieById'
+import { getMovieByIdQuery } from '@/db/queries/movies/getMovieById'
 
 export default async function handler(
 	req: NextApiRequest,
@@ -15,7 +15,7 @@ export default async function handler(
 
 	// Check if the id is a string and matches the format tt\d{7}
 	if (typeof id !== 'string' || !/^tt\d{7}$/.test(id)) {
-		res.status(400).json({ message: 'Invalid title ID' })
+		res.status(400).json({ message: 'Invalid movie ID' })
 		return
 	}
 

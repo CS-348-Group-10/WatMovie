@@ -1,7 +1,7 @@
 export const getMovieByIdQuery =
 `
 SELECT
-    M.mid,
+    M.mid as id,
     M.name as movie,
     M.is_adult,
     M.release_year,

@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { Title, Genre, Cast, MemberCategory } from "@/types";
+import { Movie, Genre, Cast, MovieRole } from "@/types";
 import Image from 'next/image';
 import { CircularProgress, Container, CardContent, Typography, Chip, Box, ListItem, ListItemText, IconButton, Avatar } from "@mui/material";
 import Header from '../../components/header';
@@ -19,17 +19,23 @@ import MusicNoteIcon from '@mui/icons-material/MusicNote';
 import BrushIcon from '@mui/icons-material/Brush';
 import BuildIcon from '@mui/icons-material/Build';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+
+const snakeToCapitalized = (str: string): string => {
+    return str
+        .split('_') // Split by underscore
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize each word
+        .join(' '); // Join with space
+}
 
 const MovieDetails = () => {
     const router = useRouter();
     const { id } = router.query;
-    const [movie, setMovie] = useState<Title | null>(null);
+    const [movie, setMovie] = useState<Movie | null>(null);
     const [loading, setLoading] = useState(true);
     const [moviePosterUrl, setPosterUrl] = useState<string>('/placeholder.png');
     const [moviePlot, setPlot] = useState<string>('');
     const [genres, setGenres] = useState<Genre[]>([]);
-    const [memberCategories, setMemberCategories] = useState<MemberCategory[]>([]);
+    const [memberCategories, setMemberCategories] = useState<MovieRole[]>([]);
     const [search, setSearch] = useState<string>('');
     const [isInWatchlist, setIsInWatchlist] = useState(false);
 
@@ -52,7 +58,7 @@ const MovieDetails = () => {
 
         const fetchMovie = async () => {
             try {
-                const res = await fetch(`/api/title?id=${id}`);
+                const res = await fetch(`/api/movie?id=${id}`);
                 const data = await res.json();
                 setMovie(data);
                 fetchPoster();
@@ -70,7 +76,7 @@ const MovieDetails = () => {
         };
 
         const fetchAllMemberCategories = async () => {
-            const res = await fetch('/api/member-categories');
+            const res = await fetch('/api/movie-roles');
             const data = await res.json();
             setMemberCategories(data);
         };
@@ -114,7 +120,7 @@ const MovieDetails = () => {
                                     <Image
                                         loader={(prop) => prop.src}
                                         src={moviePosterUrl}
-                                        alt={movie.title}
+                                        alt={movie.movie}
                                         layout="fill"
                                         objectFit="cover"
                                         className="object-cover"
@@ -135,9 +141,9 @@ const MovieDetails = () => {
                         )}
                     </div>
                     <div className="flex-1 p-8">
-                        <Typography variant="h3" className="font-bold text-gray-900 mb-4">{movie.title}</Typography>
+                        <Typography variant="h3" className="font-bold text-gray-900 mb-4">{movie.movie}</Typography>
                         <div className="flex items-center gap-4 text-gray-600 mb-6">
-                            <span>{movie.start_year} - {movie.end_year ?? "Present"}</span>
+                            <span>{movie.release_year}</span>
                             <span>•</span>
                             <span className="flex items-center">
                                 <AccessTimeIcon className="mr-1" />
@@ -180,8 +186,8 @@ const MovieDetails = () => {
                             {movie.cast && movie.cast.length > 0 ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto pr-4">
                                     {movie.cast.sort((a, b) => a.ordering - b.ordering).map((actor: Cast) => {
-                                        const getCategoryIcon = (categoryId: number) => {
-                                            switch (categoryId) {
+                                        const getRoleIcon = (roleId: number) => {
+                                            switch (roleId) {
                                                 case 1: return <MoreHorizIcon className="text-gray-400" />; // self
                                                 case 2: return <MovieIcon className="text-purple-500" />; // director
                                                 case 3: return <BuildIcon className="text-gray-500" />; // producer
@@ -189,8 +195,8 @@ const MovieDetails = () => {
                                                 case 5: return <MusicNoteIcon className="text-yellow-500" />; // composer
                                                 case 6: return <TheaterComedyIcon className="text-green-500" />; // writer
                                                 case 7: return <EditIcon className="text-orange-500" />; // editor
-                                                case 9: return <ManIcon className="text-blue-500" />; // actor
-                                                case 8: return <WomanIcon className="text-pink-500" />; // actress
+                                                case 8: return <ManIcon className="text-blue-500" />; // actor
+                                                case 9: return <WomanIcon className="text-pink-500" />; // actress
                                                 case 10: return <BrushIcon className="text-indigo-500" />; // production_designer
                                                 case 11: return <MoreHorizIcon className="text-gray-400" />; // archive_footage
                                                 case 12: return <MoreHorizIcon className="text-gray-400" />; // casting_director
@@ -206,7 +212,7 @@ const MovieDetails = () => {
                                             >
                                                 <div className="flex items-start space-x-3">
                                                     <Avatar className="bg-gray-200 mt-1">
-                                                        {getCategoryIcon(actor.category_id)}
+                                                        {getRoleIcon(actor.role_id)}
                                                     </Avatar>
                                                     <div className="flex-1 min-w-0">
                                                         <Typography 
@@ -220,14 +226,14 @@ const MovieDetails = () => {
                                                                 className="text-gray-600 text-sm mb-1"
                                                                 variant="body2"
                                                             >
-                                                                as {actor.characters}
+                                                                as {actor.characters.replace(/^\["|"\]$/g, '')}
                                                             </Typography>
                                                         )}
                                                         <Typography 
                                                             className="text-gray-500 text-sm"
                                                             variant="body2"
                                                         >
-                                                            {memberCategories[actor.category_id]?.name}
+                                                            {snakeToCapitalized(memberCategories[actor.role_id - 1]?.name)}
                                                         </Typography>
                                                     </div>
                                                 </div>

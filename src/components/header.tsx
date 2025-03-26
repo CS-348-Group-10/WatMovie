@@ -17,10 +17,9 @@ export default function Header(headerprops: HeaderProps) {
 	const fetchRandomMovie = async () => {
 		setLoading(true);
 		try {
-		  const res = await fetch("/api/random-title");
+		  const res = await fetch("/api/random-movie");
 		  const data = await res.json();
-		  console.log(data);
-		  router.push(`/movies/${data.title_id}`);
+		  router.push(`/movies/${data.mid}`);
 		} catch (error) {
 		  console.error("Failed to fetch random movie:", error);
 		}

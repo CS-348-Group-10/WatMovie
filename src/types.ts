@@ -1,10 +1,8 @@
-export interface Title {
+export interface Movie {
     id: string,
-    type_id: number | null,
-    title: string,
+    movie: string,
     is_adult: boolean,
-    start_year: number | null,
-    end_year: number | null,
+    release_year: number,
     duration: number | null,
     rating: number | null,
     votes: number | null,
@@ -21,12 +19,12 @@ export type Cast = {
     id: string,
     name: string,
     ordering: number,
-    category_id: number,
+    role_id: number,
     job: string,
     characters: string
 }
 
-export type MemberCategory = {
+export type MovieRole = {
     id: string,
     name: string
 }

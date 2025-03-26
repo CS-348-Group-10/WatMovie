@@ -11,14 +11,14 @@ import Link from 'next/link'
 
 interface MovieCardProps {
   id: string;
-  title: string;
+  movie: string;
   rating: number | null;
   genres: (string | undefined)[] | null;
   votes: number | null;
   duration: number | null;
 }
 
-export default function MovieCard({ id, title, rating, genres, duration, votes }: MovieCardProps) {
+export default function MovieCard({ id, movie, rating, genres, duration, votes }: MovieCardProps) {
 	const [posterUrl, setPosterUrl] = React.useState<string>('')
 
 	React.useEffect(() => {
@@ -44,7 +44,7 @@ export default function MovieCard({ id, title, rating, genres, duration, votes }
 					<Image
 						loader={(prop) => prop.src}
 						src={posterUrl}
-						alt={title}
+						alt={movie}
 						layout="fill"
 						objectFit="cover"
 						objectPosition="cover"
@@ -54,7 +54,7 @@ export default function MovieCard({ id, title, rating, genres, duration, votes }
 				</div>
 			)}
 			<CardContent className="p-4">
-				<Typography gutterBottom variant="h5" component="div" sx={{fontFamily: 'fangsong'}} >{title}</Typography>
+				<Typography gutterBottom variant="h5" component="div" sx={{fontFamily: 'fangsong'}} >{movie}</Typography>
 				<Box className="flex justify-between items-center">
 					<MovieRating value={rating} />
 					<HeartVote value={votes} />

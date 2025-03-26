@@ -50,10 +50,8 @@ const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
 }))
 
 interface FiltersProps {
-    types: Map<number, string>;
     genres: Map<number, string>;
 
-    setSelectedTypes: (selectedTypes: number[]) => void;
     setSelectedGenres: (selectedGenres: number[]) => void;
     setMinDuration: (minDuration: number | null) => void;
     setMaxDuration: (maxDuration: number | null) => void;
@@ -67,7 +65,6 @@ interface FiltersProps {
 
 
 export default function Filters(filters: FiltersProps) {
-	const [selectedTypes, setSelectedTypes] = React.useState<number[]>([2])
 	const [selectedGenres, setSelectedGenres] = React.useState<number[]>([])
 	const [minDuration] = React.useState<number | null>(null)
 	const [maxDuration] = React.useState<number | null>(null)
@@ -77,16 +74,6 @@ export default function Filters(filters: FiltersProps) {
 	const [maxRating] = React.useState<number | null>(null)
 	const [includeAdult, setIncludeAdult] = React.useState<boolean>(false)
 	const [minVotes] = React.useState<number | null>(null)
-
-	const handleTypeClick = (id: number) => {
-		if (selectedTypes.includes(id)) {
-			filters.setSelectedTypes(selectedTypes.filter(t => t !== id))
-			setSelectedTypes(selectedTypes.filter(t => t !== id))
-		} else {
-			filters.setSelectedTypes([...selectedTypes, id])
-			setSelectedTypes([...selectedTypes, id])
-		}
-	}
 
 	const handleGenreClick = (id: number) => {
 		if (selectedGenres.includes(id)) {
@@ -100,26 +87,6 @@ export default function Filters(filters: FiltersProps) {
 
 	return (
 		<div>
-			<Accordion defaultExpanded>
-				<AccordionSummary aria-controls="panel1d-content" id="panel1d-header" >
-					<Typography component="span" className="font-bold">Title Type</Typography>
-				</AccordionSummary>
-				<AccordionDetails>
-					<div className="flex flex-wrap gap-2">
-						{Array.from(filters.types).map(([type_id, type_name]) => (
-							<Chip
-								key={type_id}
-								label={type_name}
-								clickable
-								onClick={() => handleTypeClick(type_id)}
-								onDelete={selectedTypes.includes(type_id) ? () => handleTypeClick(type_id) : undefined}
-								deleteIcon={selectedTypes.includes(type_id) ? <CloseIcon /> : undefined}
-								className={`border border-solid border-black ${selectedTypes.includes(type_id) ? 'bg-[#fad02c]' : 'bg-white'} hover:bg-[#fad02c]`}
-							/>
-						))}
-					</div>
-				</AccordionDetails>
-			</Accordion>
 			<Accordion>
 				<AccordionSummary aria-controls="panel2d-content" id="panel2d-header">
 					<Typography component="span" className="font-bold">Genres</Typography>
@@ -220,7 +187,7 @@ export default function Filters(filters: FiltersProps) {
 			</Accordion>
 			<Accordion defaultExpanded>
 				<AccordionSummary aria-controls="panel4d-content" id="panel4d-header">
-					<Typography component="span" className="font-bold">Adult titles</Typography>
+					<Typography component="span" className="font-bold">Adult movies</Typography>
 				</AccordionSummary>
 				<AccordionDetails>
 					<RadioGroup
