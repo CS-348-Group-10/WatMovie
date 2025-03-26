@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, Button, TextField, Typography, Tab, Tabs, Paper, Container } from '@mui/material';
+import { Box, Button, TextField, Typography, Tab, Tabs, Paper, Container, Alert } from '@mui/material';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 
@@ -42,21 +42,92 @@ export default function Auth() {
     email: '',
     password: '',
   });
+  const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState(false);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
+    setError('');
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement login logic
-    console.log('Login:', loginForm);
+    setError('');
+    setLoading(true);
+
+    if (!loginForm.email || !loginForm.password) {
+      setError('Please fill in all fields');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const queryParams = new URLSearchParams({
+        email: loginForm.email.trim(),
+        password: loginForm.password,
+      });
+
+      const response = await fetch(`/api/users?${queryParams.toString()}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message);
+        return;
+      }
+
+      localStorage.setItem('userId', data.id);
+      router.push('/');
+
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('Unable to connect to server. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement signup logic
-    console.log('Signup:', signupForm);
+    setError('');
+    setLoading(true);
+
+    if (!signupForm.firstName || !signupForm.lastName || !signupForm.email || !signupForm.password) {
+      setError('Please fill in all fields');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          first_name: signupForm.firstName.trim(),
+          last_name: signupForm.lastName.trim(),
+          email: signupForm.email.trim(),
+          password: signupForm.password
+        })
+      });
+      const data = await response.json();
+      console.log(response);
+
+      if (!response.ok) {
+        setError(data.message || 'Failed to create account. Please try again.');
+        return;
+      }
+
+      // If signup is successful, log the user in
+      localStorage.setItem('userId', data.id);
+      router.push('/');
+
+    } catch (err) {
+      console.error('Signup error:', err);
+      setError('Unable to connect to server. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -96,6 +167,11 @@ export default function Auth() {
             </Box>
 
             <TabPanel value={tabValue} index={0}>
+              {error && (
+                <Alert severity="error" className="mb-4">
+                  {error}
+                </Alert>
+              )}
               <form onSubmit={handleLogin}>
                 <TextField
                   fullWidth
@@ -121,9 +197,10 @@ export default function Auth() {
                   fullWidth
                   variant="contained"
                   type="submit"
+                  disabled={loading}
                   className="mt-3 bg-[#FFB800] hover:bg-[#FFA500]"
                 >
-                  Login
+                  {loading ? 'Logging in...' : 'Login'}
                 </Button>
               </form>
             </TabPanel>

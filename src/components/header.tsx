@@ -1,8 +1,7 @@
 import { AppBar, Toolbar, Button, TextField } from '@mui/material'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
-
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 
 interface HeaderProps {
@@ -12,6 +11,7 @@ interface HeaderProps {
 export default function Header(headerprops: HeaderProps) {
 	const [search, setLocalSearch] = useState<string>('')
 	const [loading, setLoading] = useState<boolean>(false)
+	const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
 	const router = useRouter();
 	
 	const fetchRandomMovie = async () => {
@@ -24,8 +24,18 @@ export default function Header(headerprops: HeaderProps) {
 		  console.error("Failed to fetch random movie:", error);
 		}
 		setLoading(false);
-	  };
+	};
 
+	useEffect(() => {
+		const userId = localStorage.getItem('userId');
+		setIsLoggedIn(!!userId);
+	}, []);
+
+	const handleLogout = () => {
+		localStorage.removeItem('userId');
+		setIsLoggedIn(false);
+		router.push('/auth');
+	};
 
 	return (
 		<AppBar position="static" className="bg-black dark:bg-gray-800 shadow-md">
@@ -79,13 +89,22 @@ export default function Header(headerprops: HeaderProps) {
 							📋 Watchlist
 						</Button>
 
-						{/* Login Button */}
-						<Button 
-							className="text-white border-gray-300 hover:bg-gray-800 rounded-xl"
-							onClick={() => router.push('/auth')}
-						>
-							Log in
-						</Button>
+						{/* Login/Logout Button */}
+						{isLoggedIn ? (
+							<Button 
+								className="text-white border-gray-300 hover:bg-gray-800 rounded-xl"
+								onClick={handleLogout}
+							>
+								Log out
+							</Button>
+						) : (
+							<Button 
+								className="text-white border-gray-300 hover:bg-gray-800 rounded-xl"
+								onClick={() => router.push('/auth')}
+							>
+								Log in
+							</Button>
+						)}
 					</div>
 				</Toolbar>
 			</div>
