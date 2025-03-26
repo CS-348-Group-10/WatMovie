@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS movie_roles (
+    rid SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL
+);

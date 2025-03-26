@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import pool from '@/db'
-import { getTitleByIdQuery } from '@/db/queries/titles/getTitleById'
+import { getMovieByIdQuery } from '@/db/queries/titles/getMovieById'
 
 export default async function handler(
 	req: NextApiRequest,
@@ -21,7 +21,7 @@ export default async function handler(
 
 	try {
 		const { rows } = await pool.query(
-			getTitleByIdQuery,
+			getMovieByIdQuery,
 			[id]
 		)
 

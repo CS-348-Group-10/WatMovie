@@ -6,18 +6,17 @@ import seedrandom from 'seedrandom'
 import pool from '@/db'
 import { getAllGenresQuery } from '@/db/queries/genres/getAllGenres'
 import { insertGenreQuery } from '@/db/queries/genres/insertGenre'
-import { insertGenreTitleQuery } from '@/db/queries/genresTitles/insertGenreTitle'
-import { getAllMemberCategoriesQuery } from '@/db/queries/memberCategories/getAllMemberCategories'
-import { insertMemberCategoryQuery } from '@/db/queries/memberCategories/insertMemberCategory'
-import { insertProductionMemberQuery } from '@/db/queries/productionMembers/insertProductionMember'
-import { insertProductionTeamQuery } from '@/db/queries/productionTeam/insertProductionTeamQuery'
-import { insertRatingQuery } from '@/db/queries/ratings/insertRatings'
-import { insertTitleQuery } from '@/db/queries/titles/insertTitle'
-import { getAllTitleTypesQuery } from '@/db/queries/titleTypes/getAllTitleTypes'
-import { insertTitleTypeQuery } from '@/db/queries/titleTypes/insertTitleType'
+import { insertGenreMovieQuery } from '@/db/queries/genresTitles/insertGenreMovie'
+import { getAllMovieRolesQuery } from '@/db/queries/movieRoles/getAllMovieRoles'
+import { insertMovieRoleQuery } from '@/db/queries/movieRoles/insertMovieRole'
+import { insertMovieProfessionalQuery } from '@/db/queries/movieProfessionals/insertMovieProfessional'
+import { insertMovieCastQuery } from '@/db/queries/movieCast/insertMovieCast'
+import { insertMovieRatingQuery } from '@/db/queries/movieRatings/insertMovieRating'
+import { insertMovieQuery } from '@/db/queries/titles/insertMovie'
 import { insertUserQuery } from '@/db/queries/users/insertUser'
 import { insertWatchlistQuery } from '@/db/queries/watchlists/insertWatchlist'
 import { insertUserReviewQuery } from '@/db/queries/userReviews/insertUserReview'
+import { getAllMovieIdsQuery } from '@/db/queries/titles/getAllMovieIds'
 
 const TSV_TITLE_FILE = path.join(process.cwd(), 'public', 'title.tsv')
 const TSV_RATINGS_FILE = path.join(process.cwd(), 'public', 'title.ratings.tsv')
@@ -28,13 +27,9 @@ const PROD_BATCH_SIZE = 1000 // ONE_THOUSAND
 const TEST_DATA_SIZE = 100 // ONE_HUNDRED
 const TSV_PARSER_OPTIONS = { separator: '\t', escape: '', quote: '' }
 
-const buildGenreAndTypeSets = async (): Promise<{ 
-	genresSet: Set<string>, 
-	typeSet: Set<string> 
-}> => {
+const buildGenreSet = async (): Promise<Set<string>> => {
 	return new Promise((resolve, reject) => {
 		const genresSet = new Set<string>()
-		const typeSet = new Set<string>()
 
 		const readStream = fs.createReadStream(TSV_TITLE_FILE).pipe(csv(TSV_PARSER_OPTIONS))
 
@@ -44,74 +39,56 @@ const buildGenreAndTypeSets = async (): Promise<{
 					genresSet.add(genre)
 				})
 			}
-
-			if (row.titleType && row.titleType !== '\\N') {
-				typeSet.add(row.titleType)
-			}
 		})
-		readStream.on('end', () => resolve({ genresSet, typeSet }))
+		readStream.on('end', () => resolve(genresSet))
 		readStream.on('error', (error) => reject(error))
 	})
 }
 
-const insertGenresAndTypes = async (
+const insertGenres = async (
 	client: any, 
-	genresSet: Set<string>, 
-	typeSet: Set<string>
+	genresSet: Set<string>
 ) => {
 	try {
 		for (const genre of genresSet) {
 			await client.query(insertGenreQuery, [genre])
 		}
-		
-		for (const type of typeSet) {
-			await client.query(insertTitleTypeQuery, [type])
-		}
 	} catch (error) {
-		throw new Error('Database insert failed [genre and title type]')
+		throw new Error('Database insert failed [genre]')
 	}
 }
 
-const getGenreAndTitleTypeMapping = async (client: any) => {
+const getGenreMapping = async (client: any) => {
 	const genreNameToIdMap = new Map<string, number>()
-	const titleTypeToIdMap = new Map<string, number>()
 
 	try {
 		const { rows: genreRows } = await client.query(getAllGenresQuery)
 		genreRows.forEach((row: any) => {
-			genreNameToIdMap.set(row.name, row.genre_id)
-		})
-		
-		const { rows: titleTypeRows } = await client.query(getAllTitleTypesQuery)
-		titleTypeRows.forEach((row: any) => {
-			titleTypeToIdMap.set(row.name, row.type_id)
+			genreNameToIdMap.set(row.name, row.gid)
 		})
 	} catch (error) {
-		throw new Error('Database select failed [genre and title type]')
+		throw new Error('Database select failed [genre]')
 	}
 
-	return { genreNameToIdMap, titleTypeToIdMap }
+	return genreNameToIdMap
 }
 
-const processTitlesBatch = async (
+const processMoviesBatch = async (
 	client: any,
 	batchRecords: any[],
-	genreNameToIdMap: Map<string, number>,
-	titleTypeToIdMap: Map<string, number>
+	genreNameToIdMap: Map<string, number>
 ) => {
 	try {
 		await client.query('BEGIN')
 
 		for (const record of batchRecords) {
 			await client.query(
-				insertTitleQuery,
+				insertMovieQuery,
 				[
 					record.tconst,
-					record.titleType === '\\N' ? null : titleTypeToIdMap.get(record.titleType),
 					record.primaryTitle,
 					record.isAdult === '0' ? false : true,
-					record.startYear === '\\N' ? null : record.startYear,
-					record.endYear === '\\N' ? null : record.endYear,
+					record.startYear,
 					record.runtimeMinutes === '\\N' ? null : record.runtimeMinutes
 				]
 			)
@@ -119,7 +96,7 @@ const processTitlesBatch = async (
 			if (record.genres && record.genres !== '\\N') {
 				for (const genre of record.genres.split(',')) {
 					await client.query(
-						insertGenreTitleQuery,
+						insertGenreMovieQuery,
 						[genreNameToIdMap.get(genre), record.tconst]
 					)
 				}
@@ -133,11 +110,10 @@ const processTitlesBatch = async (
 	}
 }
 
-const insertTitles = async (
+const insertMovies = async (
 	client: any,
 	isProduction: boolean,
-	genreNameToIdMap: Map<string, number>,
-	titleTypeToIdMap: Map<string, number>
+	genreNameToIdMap: Map<string, number>
 ) => {
 	try {
 		if (isProduction) {
@@ -148,11 +124,16 @@ const insertTitles = async (
 				const readStream = fs.createReadStream(TSV_TITLE_FILE).pipe(csv({ separator: '\t', escape: '', quote: '' }))
 				readStream.on('data', async (row) => {
 					lineCount++
+
+					if (row.titleType !== 'movie' || row.startYear === '\\N') {
+						return
+					}
+
 					batchRecords.push(row)
 
 					if (batchRecords.length === PROD_BATCH_SIZE) {
 						readStream.pause()
-						processTitlesBatch(client, batchRecords, genreNameToIdMap, titleTypeToIdMap)
+						processMoviesBatch(client, batchRecords, genreNameToIdMap)
 							.then(() => {
 								batchRecords = []
 								readStream.resume()
@@ -170,7 +151,7 @@ const insertTitles = async (
 				readStream.on('end', async () => {
 					if (batchRecords.length > 0) {
 						try {
-							await processTitlesBatch(client, batchRecords, genreNameToIdMap, titleTypeToIdMap)
+							await processMoviesBatch(client, batchRecords, genreNameToIdMap)
 						} catch (error) {
 							reject(error)
 						}
@@ -182,13 +163,17 @@ const insertTitles = async (
 		} else {
 			const rng = seedrandom('2025')
 			const selectedRecords: any[] = []
-			const titleIds = new Set<string>()
+			const movieIds = new Set<string>()
 			let lineCount = 0
 
 			await new Promise<void>((resolve, reject) => {
 				const readStream = fs.createReadStream(TSV_TITLE_FILE).pipe(csv(TSV_PARSER_OPTIONS))
 
 				readStream.on('data', (row) => {
+					if (row.titleType !== 'movie' || row.startYear === '\\N') {
+						return
+					}
+
 					lineCount++
 					if (selectedRecords.length < TEST_DATA_SIZE) {
 						selectedRecords.push(row)
@@ -202,8 +187,8 @@ const insertTitles = async (
 
 				readStream.on('end', async () => {
 					try {
-						selectedRecords.forEach((record) => titleIds.add(record.tconst))
-						await processTitlesBatch(client, selectedRecords, genreNameToIdMap, titleTypeToIdMap)
+						selectedRecords.forEach((record) => movieIds.add(record.tconst))
+						await processMoviesBatch(client, selectedRecords, genreNameToIdMap)
 						resolve()
 					} catch (error) {
 						reject(error)
@@ -211,29 +196,43 @@ const insertTitles = async (
 				})
 				readStream.on('error', (error) => reject(error))
 			})
-			return { titleIds }
+			return { movieIds }
 		}
-		return { titleIds: null }
+		return { movieIds: null }
 	} catch (error) {
 		throw new Error('Database insert failed [titles]')
 	}
 }
 
-const insertRatings = async (
+const getMovieIdsSet = async () => {
+	const movieIds = new Set<string>()
+
+	try {
+		const { rows: genreRows } = await pool.query(getAllMovieIdsQuery)
+		genreRows.forEach((row: any) => {
+			movieIds.add(row.mid)
+		})
+		return movieIds
+	} catch (error) {
+		throw new Error('Database select failed [movie ids]')
+	}
+}
+
+const insertMovieRatings = async (
 	client: any,
-	titleIds: Set<string> | null = null
+	movieIds: Set<string> | null = null
 ) => {
 	await client.query('BEGIN')
 
 	const readStream = fs.createReadStream(TSV_RATINGS_FILE).pipe(csv(TSV_PARSER_OPTIONS))
 
 	readStream.on('data', async (row) => {
-		if (titleIds && !titleIds.has(row.tconst)) {
+		if (movieIds && !movieIds.has(row.tconst)) {
 			return
 		}
 
 		await client.query(
-			insertRatingQuery,
+			insertMovieRatingQuery,
 			[
 				row.tconst,
 				Number(row.averageRating) * Number(row.numVotes),
@@ -251,17 +250,17 @@ const insertRatings = async (
 	})
 }
 
-const buildMemberCategorySet = async (): Promise<Set<string>> => {
+const buildMovieRolesSet = async (): Promise<Set<string>> => {
 	return new Promise((resolve, reject) => {
-		const categorySet = new Set<string>()
+		const rolesSet = new Set<string>()
 
 		const readStream = fs.createReadStream(TSV_PRINCIPALS_FILE).pipe(csv(TSV_PARSER_OPTIONS))
 		
 		readStream.on('data', async (row) => {
-			categorySet.add(row.category)
+			rolesSet.add(row.category)
 		})
 		readStream.on('end', async () => {
-			resolve(categorySet)
+			resolve(rolesSet)
 		})
 		readStream.on('error', async (error) => {
 			reject(error)
@@ -269,51 +268,51 @@ const buildMemberCategorySet = async (): Promise<Set<string>> => {
 	})
 }
 
-const insertMemberCategories = async (
+const insertMovieRoles = async (
 	client: any,
-	categorySet: Set<string>
+	rolesSet: Set<string>
 ) => {
 	await client.query('BEGIN')
 
-	for (const category of categorySet) {
-		await client.query(insertMemberCategoryQuery, [category])
+	for (const role of rolesSet) {
+		await client.query(insertMovieRoleQuery, [role])
 	}
 
 	await client.query('COMMIT')
 }
 
-const getMemberCategoryMapping = async (client: any) => {
-	const categoryToIdMap = new Map<string, number>()
+const getMovieRolesMapping = async (client: any) => {
+	const roleToIdMap = new Map<string, number>()
 
 	try {
-		const { rows } = await client.query(getAllMemberCategoriesQuery)
+		const { rows } = await client.query(getAllMovieRolesQuery)
 
 		rows.forEach((row: any) => {
-			categoryToIdMap.set(row.name, row.category_id)
+			roleToIdMap.set(row.name, row.rid)
 		})
 
-		return categoryToIdMap
+		return roleToIdMap
 	} catch (error) {
-		throw new Error('Database select failed [member categories]')
+		throw new Error('Database select failed [movie roles]')
 	}
 }
 
-const getRelatedProductionMemberIds = async (
-	titleIds: Set<string>
+const getRelatedMovieProfessionalIds = async (
+	movieIds: Set<string>
 ) => {
 	return new Promise<Set<string>>((resolve, reject) => {
-		const productionMembers = new Set<string>()
+		const movieProfessionals = new Set<string>()
 
 		const readStream = fs.createReadStream(TSV_PRINCIPALS_FILE).pipe(csv(TSV_PARSER_OPTIONS))
 
 		readStream.on('data', (row) => {
-			if (titleIds.has(row.tconst)) {
-				productionMembers.add(row.nconst)
+			if (movieIds.has(row.tconst)) {
+				movieProfessionals.add(row.nconst)
 			}
 		})
 
 		readStream.on('end', () => {
-			resolve(productionMembers)
+			resolve(movieProfessionals)
 		})
 
 		readStream.on('error', (error) => {
@@ -322,7 +321,7 @@ const getRelatedProductionMemberIds = async (
 	})
 }
 
-const processMembersBatch = async (
+const processMovieProfessionalsBatch = async (
 	client: any,
 	batchRecords: any[],
 ) => {
@@ -331,7 +330,7 @@ const processMembersBatch = async (
 
 		for (const record of batchRecords) {
 			await client.query(
-				insertProductionMemberQuery,
+				insertMovieProfessionalQuery,
 				[
 					record.nconst,
 					record.primaryName
@@ -342,30 +341,32 @@ const processMembersBatch = async (
 		await client.query('COMMIT')
 	} catch (error) {
 		await client.query('ROLLBACK')
-		throw new Error('Member batch insert failed' + error)
+		throw new Error('Movie professionals batch insert failed' + error)
 	}
 }
 
-const insertProductionMembers = async (
+const insertMovieProfessionals = async (
 	client: any,
-	productionMemberIds: Set<string> | null = null
+	movieProfessionalIds: Set<string>
 ) => {
 	try {
 		let batchRecords: any[] = []
 
-		await new Promise<void>((resolve, reject) => {
+		return new Promise<Set<string>>((resolve, reject) => {
 			const readStream = fs.createReadStream(TSV_NAME_FILE).pipe(csv(TSV_PARSER_OPTIONS))
 
 			readStream.on('data', async (row) => {
-				if (productionMemberIds && !productionMemberIds.has(row.nconst)) {
+				if (!movieProfessionalIds.has(row.nconst)) {
 					return
 				}
+		
+				movieProfessionalIds.delete(row.nconst)
 				
 				batchRecords.push(row)
 
 				if (batchRecords.length === PROD_BATCH_SIZE) {
 					readStream.pause()
-					processMembersBatch(client, batchRecords)
+					processMovieProfessionalsBatch(client, batchRecords)
 						.then(() => {
 							batchRecords = []
 							readStream.resume()
@@ -379,36 +380,36 @@ const insertProductionMembers = async (
 			readStream.on('end', async () => {
 				if (batchRecords.length > 0) {
 					try {
-						await processMembersBatch(client, batchRecords)
+						await processMovieProfessionalsBatch(client, batchRecords)
 					} catch (error) {
 						reject(error)
 					}
 				}
-				resolve()
+				resolve(movieProfessionalIds)
 			})
 			readStream.on('error', (error) => reject(error))
 		})
 	} catch (error) {
-		throw new Error('Database insert failed [production members]')
+		throw new Error('Database insert failed [movie professionals]')
 	}
 }
 
-const processProductionTeamBatch = async (
+const processMovieCastBatch = async (
 	client: any,
 	batchRecords: any[],
-	categoryToIdMap: Map<string, number>
+	roleToIdMap: Map<string, number>
 ) => {
 	try {
 		await client.query('BEGIN')
 
 		for (const record of batchRecords) {
 			await client.query(
-				insertProductionTeamQuery,
+				insertMovieCastQuery,
 				[
 					record.tconst,
 					record.ordering,
 					record.nconst,
-					categoryToIdMap.get(record.category),
+					roleToIdMap.get(record.category),
 					record.job === '\\N' ? null : record.job,
 					record.characters === '\\N' ? null : record.characters
 				]
@@ -418,14 +419,15 @@ const processProductionTeamBatch = async (
 		await client.query('COMMIT')
 	} catch (error) {
 		await client.query('ROLLBACK')
-		throw new Error('Production team batch insert failed' + error)
+		throw new Error('Movie cast batch insert failed' + error)
 	}
 }
 
-const insertProductionTeam = async (
+const insertMovieCast = async (
 	client: any,
-	categoryToIdMap: Map<string, number>,
-	titleIds: Set<string> | null = null
+	roleToIdMap: Map<string, number>,
+	movieIds: Set<string>,
+	missingProfessionalIds: Set<string>
 ) => {
 	try {
 		let batchRecords: any[] = []
@@ -434,7 +436,7 @@ const insertProductionTeam = async (
 			const readStream= fs.createReadStream(TSV_PRINCIPALS_FILE).pipe(csv(TSV_PARSER_OPTIONS))
 
 			readStream.on('data', async (row) => {
-				if (titleIds && !titleIds.has(row.tconst)) {
+				if (!movieIds.has(row.tconst) || missingProfessionalIds.has(row.nconst)) {
 					return
 				}
 
@@ -442,7 +444,7 @@ const insertProductionTeam = async (
 
 				if (batchRecords.length === PROD_BATCH_SIZE) {
 					readStream.pause()
-					processProductionTeamBatch(client, batchRecords, categoryToIdMap)
+					processMovieCastBatch(client, batchRecords, roleToIdMap)
 						.then(() => {
 							batchRecords = []
 							readStream.resume()
@@ -456,7 +458,7 @@ const insertProductionTeam = async (
 			readStream.on('end', async () => {
 				if (batchRecords.length > 0) {
 					try {
-						await processProductionTeamBatch(client, batchRecords, categoryToIdMap)
+						await processMovieCastBatch(client, batchRecords, roleToIdMap)
 					} catch (error) {
 						reject(error)
 					}
@@ -467,13 +469,13 @@ const insertProductionTeam = async (
 			readStream.on('error', (error) => reject(error))
 		})
 	} catch (error) {
-		throw new Error('Database insert failed [production team]')
+		throw new Error('Database insert failed [movie cast]')
 	}
 }
 
-const insertUserAndRelatedDate = async (
+const insertUserAndRelatedData = async (
 	client: any,
-	titleIds: Set<string> | null = null
+	movieIds: Set<string> | null = null
 ) => {
 	try {
 		await client.query('BEGIN')
@@ -482,30 +484,31 @@ const insertUserAndRelatedDate = async (
 			await client.query(
 				insertUserQuery,
 				[
-					i, 
-					`Person ${i}`,
-					`email${i}@abc.com`
+					`First Name ${i}`,
+					`Last Name ${i}`,
+					`email${i}@abc.com`,
+					`password${i}`
 				]
 			)
 		}
 
 		const rng = seedrandom('2025')
 
-		if (!titleIds) {
-			titleIds = new Set<string>()
+		if (!movieIds) {
+			movieIds = new Set<string>()
 			for (let i = 0; i < 100; i++) {
 				const randomNum = Math.floor(rng() * 10000000) // 0 to 9999999
 				const randomTitleId = `tt${randomNum.toString().padStart(7, '0')}`
-				titleIds.add(randomTitleId)
+				movieIds.add(randomTitleId)
 			}
 		}
 
-		const titleIdsArray = Array.from(titleIds)
+		const movieIdsArray = Array.from(movieIds)
 
 		for (let i = 0; i < 100; i++) {
 			const numWatchlist = Math.floor(rng() * 6) // generates 0 to 5 watchlist entries per user
-			// Create a copy of titleIdsArray to ensure unique titleIds for this user's watchlist
-			const availableTitleIds = [...titleIdsArray]
+			// Create a copy of movieIdsArray to ensure unique movieIds for this user's watchlist
+			const availableTitleIds = [...movieIdsArray]
 			for (let j = 0; j < numWatchlist; j++) {
 				const randomIndex = Math.floor(rng() * availableTitleIds.length)
 				const randomTitleId = availableTitleIds.splice(randomIndex, 1)[0]
@@ -523,8 +526,8 @@ const insertUserAndRelatedDate = async (
 		// with up to 5 reviews per user
 		for (let i = 0; i < 100; i++) {
 			const numReviews = Math.floor(rng() * 6) // generates 0 to 5 reviews per user
-			// Create a copy of titleIdsArray to ensure unique titleIds for this user's reviews
-			const availableTitleIds = [...titleIdsArray]
+			// Create a copy of movieIdsArray to ensure unique movieIds for this user's reviews
+			const availableTitleIds = [...movieIdsArray]
 			for (let j = 0; j < numReviews; j++) {
 				const randomIndex = Math.floor(rng() * availableTitleIds.length)
 				const randomTitleId = availableTitleIds.splice(randomIndex, 1)[0]
@@ -548,7 +551,6 @@ const insertUserAndRelatedDate = async (
 	}
 }
 
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'POST') {
 		return res.status(405).json({ error: 'Only POST method is allowed' })
@@ -558,35 +560,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   
 	let client: any = null
 	try {
-		// Build genre and type sets
-		const { genresSet, typeSet } = await buildGenreAndTypeSets()
-
 		client = await pool.connect()
 
-		await insertGenresAndTypes(client, genresSet, typeSet)
-		console.log('🚀 genres and title_types populated')
+		// Build genres set
+		const genresSet = await buildGenreSet()
 
-		const { genreNameToIdMap, titleTypeToIdMap } = await getGenreAndTitleTypeMapping(client)
-		const { titleIds } = await insertTitles(client, isProduction, genreNameToIdMap, titleTypeToIdMap)
+		await insertGenres(client, genresSet)
+		console.log('🚀 genres populated')
+
+		const genreNameToIdMap = await getGenreMapping(client)
+
+		await insertMovies(client, isProduction, genreNameToIdMap)
 		console.log('🚀 titles populated')
 
-		await insertUserAndRelatedDate(client, titleIds)
-		console.log('🚀 users, watchlists, and reviews populated')
+		const movieIds = await getMovieIdsSet()
 
-		await insertRatings(client, titleIds)
-		console.log('🚀 ratings populated')
+		// await insertUserAndRelatedData(client, movieIds)
+		// console.log('🚀 users, watchlists, and reviews populated')
 
-		const categorySet = await buildMemberCategorySet()
-		await insertMemberCategories(client, categorySet)
-		console.log('🚀 member_categories populated')
+		await insertMovieRatings(client, movieIds)
+		console.log('🚀 movie_ratings populated')
 
-		const productionMemberIds = titleIds ? await getRelatedProductionMemberIds(titleIds) : null
-		await insertProductionMembers(client, productionMemberIds)
-		console.log('🚀 production_members populated')
+		const roleSet = await buildMovieRolesSet()
+		await insertMovieRoles(client, roleSet)
+		console.log('🚀 movie_roles populated')
 
-		const categoryToIdMap = await getMemberCategoryMapping(client)
-		await insertProductionTeam(client, categoryToIdMap, titleIds)
-		console.log('🚀 production_team populated')
+		const movieProfessionalIds = await getRelatedMovieProfessionalIds(movieIds)
+		const missingProfessionalIds = await insertMovieProfessionals(client, movieProfessionalIds)
+		console.log('🚀 movie_professionals populated')
+
+		const roleToIdMap = await getMovieRolesMapping(client)
+		await insertMovieCast(client, roleToIdMap, movieIds, missingProfessionalIds)
+		console.log('🚀 movie_cast populated')
 	
 		res.status(200).json({ message: 'Database populated successfully' })
 	} catch (error) {

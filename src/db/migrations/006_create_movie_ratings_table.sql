@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS movie_ratings (
+    mid VARCHAR(36) PRIMARY KEY,
+    sum_of_votes FLOAT8 NOT NULL DEFAULT 0,
+    total_votes INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY (mid) REFERENCES movies(mid) ON DELETE CASCADE
+);

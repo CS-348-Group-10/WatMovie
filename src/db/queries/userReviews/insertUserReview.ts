@@ -1,10 +1,10 @@
 export const insertUserReviewQuery =
 `
-INSERT INTO user_review (
-    user_id,
-    title_id,
+INSERT INTO user_reviews (
+    uid,
+    mid,
     rating,
-    review
+    comment
 ) VALUES (
     $1,
     $2,

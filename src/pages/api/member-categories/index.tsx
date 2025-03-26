@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import pool from '@/db'
-import { getAllMemberCategoriesQuery } from '@/db/queries/memberCategories/getAllMemberCategories'
+import { getAllMovieRolesQuery } from '@/db/queries/movieRoles/getAllMovieRoles'
 
 export default async function handler(
 	req: NextApiRequest, 
@@ -12,7 +12,7 @@ export default async function handler(
 	}
 
 	try {
-		const { rows } = await pool.query(getAllMemberCategoriesQuery)
+		const { rows } = await pool.query(getAllMovieRolesQuery)
 
 		const memberCategories = rows.map((row) => {
 			return {

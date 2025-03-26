@@ -1,12 +1,14 @@
 export const insertUserQuery =
 `
 INSERT INTO users (
-    user_id,
-    name,
-    email
+    first_name,
+    last_name,
+    email,
+    password
 ) VALUES (
     $1,
     $2,
-    $3
+    $3,
+    $4
 )
 `
