@@ -44,7 +44,7 @@ export default async function handler(
 				return
 			}
 
-			await pool.query(
+			const { rows } = await pool.query(
 				insertUserQuery, 
 				[
 					first_name, 
@@ -53,8 +53,8 @@ export default async function handler(
 					password
 				]
 			)
-
-			res.status(201).end()
+			
+			res.status(201).json({ id: rows[0].uid })
 		} catch (err) {
 			console.error(err)
 			res.status(500).json({ message: 'Something went wrong' })
