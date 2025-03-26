@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import pool from '@/db'
 import { buildGetMoviesByPageQuery } from '@/db/queries/movies/getMoviesByPage'
 import { SortOrder, SortType } from '@/types'
+import { getMovieCountQuery } from '@/db/queries/movies/getMovieCount'
 
 const parseIds = (query: string | string[] | undefined): number[] | null => {
 	try {
@@ -52,7 +53,8 @@ export default async function handler(
 			pageSize,
 			page, 
 			sortType,
-			sortOrder
+			sortOrder,
+			count
 		} = req.query
 
 		const sanitizedSearchQuery = searchQuery ? String(searchQuery) : null 
@@ -69,6 +71,7 @@ export default async function handler(
 		const sanitizedPage = page && !isNaN(Number(page)) ? Math.max(1, Number(page)) : null
 		const sanitizedSortType = (sortType && Object.values(SortType).includes(sortType as SortType)) ? sortType as SortType : null
 		const sanitizedSortOrder = (sortOrder && Object.values(SortOrder).includes(sortOrder as SortOrder)) ? sortOrder as SortOrder : SortOrder.ASC
+		const sanitizedCount = parseBoolean(count) ?? false
 
 		const baseParams = [
 			sanitizedSearchQuery,
@@ -80,14 +83,25 @@ export default async function handler(
 			sanitizedMinRating,
 			sanitizedMaxRating,
 			sanitizedMinVotes,
-			sanitizedGenreIds,
-			sanitizedPageSize, 
-			sanitizedPage ? (sanitizedPage - 1) * sanitizedPageSize : 0
+			sanitizedGenreIds
 		]
+		
+		if (sanitizedCount) {
+			const { rows } = await pool.query(
+				getMovieCountQuery,
+				baseParams
+			)
+			res.status(200).json(rows[0].total)
+			return
+		}
 
 		const { rows } = await pool.query(
 			buildGetMoviesByPageQuery(sanitizedSortType, sanitizedSortOrder),
-			baseParams
+			[
+				...baseParams,
+				sanitizedPageSize, 
+				sanitizedPage ? (sanitizedPage - 1) * sanitizedPageSize : 0
+			]
 		)
 		res.status(200).json(rows)
 	} catch (err) {
