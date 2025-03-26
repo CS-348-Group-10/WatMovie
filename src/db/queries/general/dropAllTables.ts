@@ -1,14 +1,13 @@
 export const dropAllTablesQuery = 
 `
-DROP TABLE IF EXISTS genres_titles;
-DROP TABLE IF EXISTS genres;
+DROP TABLE IF EXISTS user_reviews;
+DROP TABLE IF EXISTS movie_cast;
+DROP TABLE IF EXISTS movie_roles;
+DROP TABLE IF EXISTS movie_professionals;
+DROP TABLE IF EXISTS movie_ratings;
 DROP TABLE IF EXISTS watchlists;
-DROP TABLE IF EXISTS ratings;
-DROP TABLE IF EXISTS production_team;
-DROP TABLE IF EXISTS production_members;
-DROP TABLE IF EXISTS user_review;
-DROP TABLE IF EXISTS titles;
-DROP TABLE IF EXISTS member_categories;
-DROP TABLE IF EXISTS title_types;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS genres_movies;
+DROP TABLE IF EXISTS movies CASCADE;
+DROP TABLE IF EXISTS genres;
 `

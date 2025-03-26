@@ -1,4 +1,4 @@
 CREATE TABLE IF NOT EXISTS genres (
-    genre_id SERIAL PRIMARY KEY,
+    gid SERIAL PRIMARY KEY,
     name TEXT NOT NULL
 );
