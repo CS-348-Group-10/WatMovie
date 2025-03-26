@@ -12,11 +12,11 @@ import { insertMovieRoleQuery } from '@/db/queries/movieRoles/insertMovieRole'
 import { insertMovieProfessionalQuery } from '@/db/queries/movieProfessionals/insertMovieProfessional'
 import { insertMovieCastQuery } from '@/db/queries/movieCast/insertMovieCast'
 import { insertMovieRatingQuery } from '@/db/queries/movieRatings/insertMovieRating'
-import { insertMovieQuery } from '@/db/queries/titles/insertMovie'
+import { insertMovieQuery } from '@/db/queries/movies/insertMovie'
 import { insertUserQuery } from '@/db/queries/users/insertUser'
 import { insertWatchlistQuery } from '@/db/queries/watchlists/insertWatchlist'
 import { insertUserReviewQuery } from '@/db/queries/userReviews/insertUserReview'
-import { getAllMovieIdsQuery } from '@/db/queries/titles/getAllMovieIds'
+import { getAllMovieIdsQuery } from '@/db/queries/movies/getAllMovieIds'
 
 const TSV_TITLE_FILE = path.join(process.cwd(), 'public', 'title.tsv')
 const TSV_RATINGS_FILE = path.join(process.cwd(), 'public', 'title.ratings.tsv')

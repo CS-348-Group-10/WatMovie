@@ -16,7 +16,7 @@ export default async function handler(
 
 		const genres = rows.map((genre) => {
 			return {
-				id: genre.genre_id,
+				id: genre.gid,
 				name: genre.name,
 			}
 		})

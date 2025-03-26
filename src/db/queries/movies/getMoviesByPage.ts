@@ -12,24 +12,24 @@ const getSortingNotNullCondition = (sortBy: SortType | null) => {
 }
 
 export const buildGetMoviesByPageQuery = (sortBy: SortType | null, order: SortOrder) => {
-	const descTitleId = 'M.mid DESC'
+	const descMovieId = 'M.mid DESC'
 	let orderBy = ''
 
 	switch (sortBy) {
 	case SortType.RATING:
-		orderBy = `rating ${order}, ${descTitleId}`
+		orderBy = `rating ${order}, ${descMovieId}`
 		break
 	case SortType.TITLE:
-		orderBy = `M.name ${order}, ${descTitleId}`
+		orderBy = `M.name ${order}, ${descMovieId}`
 		break
 	case SortType.YEAR:
-		orderBy = `M.release_year ${order}, ${descTitleId}`
+		orderBy = `M.release_year ${order}, ${descMovieId}`
 		break
 	case SortType.RUNTIME:
-		orderBy = `M.runtime_minutes ${order}, ${descTitleId}`
+		orderBy = `M.runtime_minutes ${order}, ${descMovieId}`
 		break
 	default:
-		orderBy = descTitleId
+		orderBy = descMovieId
 		break
 	}
 

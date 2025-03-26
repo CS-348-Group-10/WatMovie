@@ -1,22 +1,15 @@
-import { Container } from '@mui/material'
 import { useEffect, useState } from 'react'
 import Filters from '../components/filters'
 import Header from '../components/header'
 import MovieCard from '../components/movieCard'
-import { Title } from '../types'
+import { Movie } from '../types'
 
 export default function Home() {
-
-
-	const [typesMap, setTypesMap] = useState(new Map<number, string>())
 	const [genresMap, setGenresMap] = useState(new Map<number, string>())
-	const [duration, setDuration] = useState<string>('')
-	const [rating, setRating] = useState<string>('')	
-	const [movies, setMovies] = useState<Title[]>([])
+	const [movies, setMovies] = useState<Movie[]>([])
 	const [loading, setLoading] = useState<boolean>(false)
 	const [moviesLoaded, setMoviesLoaded] = useState<boolean>(false)
 
-	const [selectedTypes, setSelectedTypes] = useState<number[]>([2])
 	const [search, setSearch] = useState<string>('')
 	const [showAdult, setShowAdult] = useState<boolean>(false)
 	const [selectedGenres, setSelectedGenres] = useState<number[]>([])
@@ -28,18 +21,6 @@ export default function Home() {
 	const [endYear, setEndYear] = useState<number | null>(null)
 	const [minVotes, setMinVotes] = useState<number | null>(null)
 
-	const fetchTitleTypes = async () => {
-		try {
-			const response = await fetch('/api/title-types')
-			const data = await response.json()
-			const map = new Map<number, string>()
-			data.forEach((type: { id: number, name: string }) => map.set(type.id, type.name))
-			setTypesMap(map)
-		} catch (error) {
-			console.error('Failed to fetch title types:', error)
-		}
-	}
-
 	const fetchGenres = async () => {
 		try {
 			const response = await fetch('/api/genres')
@@ -48,13 +29,12 @@ export default function Home() {
 			data.forEach((genre: { id: number, name: string }) => map.set(genre.id, genre.name))
 			setGenresMap(map)
 		} catch (error) {
-			console.error('Failed to fetch title types:', error)
+			console.error('Failed to fetch genres:', error)
 		}
 	}
 
 	useEffect(() => {
 		setLoading(true)
-		fetchTitleTypes()
 		fetchGenres()
 		setLoading(false)
 	}, [])
@@ -64,7 +44,6 @@ export default function Home() {
 			setMoviesLoaded(true)
 			try {
 				const queryParams = new URLSearchParams({
-					...(selectedTypes.length !== 0 && { typeIds: selectedTypes.join(',')}),
 					...(search !== '' && { searchQuery: search}),
 					...(selectedGenres.length !== 0 && { genreIds: selectedGenres.join(',')}),
 					isAdult: showAdult.toString(),
@@ -77,7 +56,7 @@ export default function Home() {
 					...(minVotes && { minVotes: minVotes.toString()}),
 				})
 				const queryString = queryParams.toString()
-				const url = queryString ? `api/titles?${queryParams}` : '/api/titles'
+				const url = queryString ? `api/movies?${queryParams}` : '/api/movies'
 				const res = await fetch(url)
 				const data = await res.json()
 				setMovies(data)
@@ -88,7 +67,7 @@ export default function Home() {
 		}
 
 		fetchMovies()
-	}, [selectedTypes, minDuration, maxDuration, startYear, endYear, minRating, maxRating, selectedGenres, search, showAdult, minVotes])
+	}, [minDuration, maxDuration, startYear, endYear, minRating, maxRating, selectedGenres, search, showAdult, minVotes])
 
 	return (
 		<div className="container p-1 text-black dark:text-white min-w-full">
@@ -100,10 +79,8 @@ export default function Home() {
 			<div className="flex h-screen pt-20">
 				<div className="w-1/4 p-4 overflow-y-auto">
 					<Filters
-		    			types={typesMap}
 						genres={genresMap}
 
-						setSelectedTypes={setSelectedTypes}
 						setSelectedGenres={setSelectedGenres}
 						setMinDuration={setMinDuration}
 						setMaxDuration={setMaxDuration}
@@ -124,7 +101,7 @@ export default function Home() {
 								<MovieCard
 									key={movie.id}
 									id={movie.id}
-									title={movie.title}
+									movie={movie.movie}
 									rating={movie.rating}
 									genres={movie.genre_ids ? movie.genre_ids.map((id) => genresMap.get(id)) : null}
 									duration={movie.duration}

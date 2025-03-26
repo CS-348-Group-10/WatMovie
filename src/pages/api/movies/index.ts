@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import pool from '@/db'
-import { buildGetMoviesByPageQuery } from '@/db/queries/titles/getMoviesByPage'
+import { buildGetMoviesByPageQuery } from '@/db/queries/movies/getMoviesByPage'
 import { SortOrder, SortType } from '@/types'
 
 const parseIds = (query: string | string[] | undefined): number[] | null => {
@@ -39,12 +39,10 @@ export default async function handler(
 	}
 
 	try {
-		const { 
-			typeIds, 
+		const {
 			searchQuery, 
 			isAdult,
-			startYear,
-			endYear,
+			releaseYear,
 			minDuration,
 			maxDuration,
 			minRating,
@@ -57,11 +55,10 @@ export default async function handler(
 			sortOrder
 		} = req.query
 
-		const sanitizedTypeIds = parseIds(typeIds)
 		const sanitizedSearchQuery = searchQuery ? String(searchQuery) : null 
 		const sanitizedIsAdult = parseBoolean(isAdult)
-		const sanitizedStartYear = startYear && !isNaN(Number(startYear)) ? Number(startYear) : null
-		const sanitizedEndYear = endYear && !isNaN(Number(endYear)) ? Number(endYear) : null
+		const sanitizedStartYear = releaseYear && !isNaN(Number(releaseYear)) ? Number(releaseYear) : null
+		const sanitizedEndYear = releaseYear && !isNaN(Number(releaseYear)) ? Number(releaseYear) : null
 		const sanitizedMinDuration = minDuration && !isNaN(Number(minDuration)) ? Number(minDuration) : null
 		const sanitizedMaxDuration = maxDuration && !isNaN(Number(maxDuration)) ? Number(maxDuration) : null
 		const sanitizedMinRating = minRating && !isNaN(Number(minRating)) ? Number(minRating) : null
@@ -74,7 +71,6 @@ export default async function handler(
 		const sanitizedSortOrder = (sortOrder && Object.values(SortOrder).includes(sortOrder as SortOrder)) ? sortOrder as SortOrder : SortOrder.ASC
 
 		const baseParams = [
-			sanitizedTypeIds,
 			sanitizedSearchQuery,
 			sanitizedIsAdult,
 			sanitizedStartYear,

@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import pool from '@/db'
-import { getRandomMovieQuery } from '@/db/queries/titles/getRandomMovie'
+import { getAllMovieRolesQuery } from '@/db/queries/movieRoles/getAllMovieRoles'
 
 export default async function handler(
 	req: NextApiRequest, 
@@ -12,8 +12,16 @@ export default async function handler(
 	}
 
 	try {
-		const { rows } = await pool.query(getRandomMovieQuery)
-		res.status(200).json(rows[0])
+		const { rows } = await pool.query(getAllMovieRolesQuery)
+
+		const memberCategories = rows.map((row) => {
+			return {
+				id: row.rid,
+				name: row.name,
+			}
+		})
+
+		res.status(200).json(memberCategories)
 	} catch (err) {
 		console.error(err)
 		res.status(500).json({ message: 'Something went wrong' })
