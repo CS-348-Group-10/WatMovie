@@ -1,6 +1,6 @@
 import { SortOrder, SortType } from '@/types'
 
-const getSortingNotNullCondition = (sortBy: SortType | null) => {
+export const getSortingNotNullCondition = (sortBy: SortType | null) => {
 	switch (sortBy) {
 	case SortType.RATING:
 		return 'AND MR.sum_of_votes IS NOT NULL AND MR.total_votes IS NOT NULL'

@@ -1,6 +1,9 @@
-export const getMovieCountQuery = `
+import { SortType } from "@/types"
+import { getSortingNotNullCondition } from "./getMoviesByPage"
+
+export const buildGetMovieCountQuery = (sortBy: SortType | null) => `
 SELECT 
-    COUNT(M.mid) AS total
+    COUNT(DISTINCT M.mid) AS total
 FROM movies M
 LEFT JOIN imdb_ratings MR ON M.mid = MR.mid
 LEFT JOIN genres_movies GM ON M.mid = GM.mid
@@ -15,4 +18,5 @@ WHERE
     AND ($8::INTEGER IS NULL OR (MR.sum_of_votes / MR.total_votes <= $8))
     AND ($9::INTEGER IS NULL OR MR.total_votes >= $9)
     AND ($10::INTEGER[] IS NULL OR GM.gid = ANY($10))
+    ${getSortingNotNullCondition(sortBy)}
 `
