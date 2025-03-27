@@ -53,9 +53,13 @@ export default async function handler(
 			pageSize,
 			page, 
 			sortType,
-			sortOrder,
-			count
+			sortOrder
 		} = req.query
+
+		if (!pageSize || isNaN(Number(pageSize)) || Number(pageSize) < 1) {
+			res.status(400).json({ message: 'pageSize is required' })
+			return
+		}
 
 		const sanitizedSearchQuery = searchQuery ? String(searchQuery) : null 
 		const sanitizedIsAdult = parseBoolean(isAdult)
@@ -67,11 +71,10 @@ export default async function handler(
 		const sanitizedMaxRating = maxRating && !isNaN(Number(maxRating)) ? Number(maxRating) : null
 		const sanitizedMinVotes = minVotes && !isNaN(Number(minVotes)) ? Number(minVotes) : null
 		const sanitizedGenreIds = parseIds(genreIds)
-		const sanitizedPageSize = pageSize && !isNaN(Number(pageSize)) ? Math.max(1, Number(pageSize)) : 10
+		const sanitizedPageSize = Number(pageSize)
 		const sanitizedPage = page && !isNaN(Number(page)) ? Math.max(1, Number(page)) : null
 		const sanitizedSortType = (sortType && Object.values(SortType).includes(sortType as SortType)) ? sortType as SortType : null
 		const sanitizedSortOrder = (sortOrder && Object.values(SortOrder).includes(sortOrder as SortOrder)) ? sortOrder as SortOrder : SortOrder.ASC
-		const sanitizedCount = parseBoolean(count) ?? false
 
 		const baseParams = [
 			sanitizedSearchQuery,
@@ -86,24 +89,27 @@ export default async function handler(
 			sanitizedGenreIds
 		]
 		
-		if (sanitizedCount) {
-			const { rows } = await pool.query(
-				getMovieCountQuery,
-				baseParams
+		const [
+			{ rows: countRows },
+			{ rows: movieRows } 
+		] = await Promise.all([
+			pool.query(getMovieCountQuery,baseParams),
+			pool.query(
+				buildGetMoviesByPageQuery(sanitizedSortType, sanitizedSortOrder),
+				[
+					...baseParams,
+					sanitizedPageSize, 
+					sanitizedPage ? (sanitizedPage - 1) * sanitizedPageSize : 0
+				]
 			)
-			res.status(200).json(rows[0].total)
-			return
-		}
+		])
 
-		const { rows } = await pool.query(
-			buildGetMoviesByPageQuery(sanitizedSortType, sanitizedSortOrder),
-			[
-				...baseParams,
-				sanitizedPageSize, 
-				sanitizedPage ? (sanitizedPage - 1) * sanitizedPageSize : 0
-			]
-		)
-		res.status(200).json(rows)
+		const total_pages = Math.ceil(Math.max(Number(countRows[0].total), 1) / sanitizedPageSize)
+
+		res.status(200).json(movieRows.map(movieRow => ({
+			...movieRow,
+			total_pages
+		})))
 	} catch (err) {
 		console.error(err)
 		res.status(500).json({ message: 'Something went wrong' })
