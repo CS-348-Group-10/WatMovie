@@ -6,4 +6,5 @@ SET
     comment = $4,
     updated_at = NOW()
 WHERE uid = $1 AND mid = $2
+RETURNING *;
 `
