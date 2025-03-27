@@ -19,11 +19,12 @@ interface MovieCardProps {
   genres: (string | undefined)[] | null;
   votes: number | null;
   duration: number | null;
+  isInWatchlist: boolean;
+  onWatchlistToggle: (movieId: string) => Promise<void>;
 }
 
-export default function MovieCard({ id, movie, rating, genres, duration, votes }: MovieCardProps) {
+export default function MovieCard({ id, movie, rating, genres, duration, votes, isInWatchlist, onWatchlistToggle }: MovieCardProps) {
 	const [posterUrl, setPosterUrl] = React.useState<string>('')
-	const [isInWatchlist, setIsInWatchlist] = React.useState(false)
 
 	React.useEffect(() => {
 		const fetchPoster = async () => {
@@ -40,11 +41,9 @@ export default function MovieCard({ id, movie, rating, genres, duration, votes }
 		fetchPoster()
 	}, [id])
 
-	const handleAddToWatchlist = (e: React.MouseEvent) => {
+	const handleAddToWatchlist = async (e: React.MouseEvent) => {
 		e.preventDefault(); // Prevent navigation when clicking the button
-		setIsInWatchlist(!isInWatchlist);
-		// TODO: Implement add/remove from watchlist logic
-		console.log(isInWatchlist ? 'Removing from watchlist:' : 'Adding to watchlist:', id);
+		await onWatchlistToggle(id);
 	};
 
 	return (

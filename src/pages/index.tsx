@@ -4,6 +4,7 @@ import Header from '../components/header'
 import MovieCard from '../components/movieCard'
 import { Movie } from '../types'
 import { Box, Pagination } from "@mui/material";
+import { useRouter } from 'next/router';
 
 const ITEMS_PER_PAGE = 12; // Number of movies to show per page
 
@@ -14,6 +15,7 @@ export default function Home() {
 	const [moviesLoaded, setMoviesLoaded] = useState<boolean>(false)
 	const [page, setPage] = useState(1)
 	const [totalPages, setTotalPages] = useState<number | null>(null)
+	const [watchlist, setWatchlist] = useState<string[]>([])
 
 	const [search, setSearch] = useState<string>('')
 	const [showAdult, setShowAdult] = useState<boolean>(false)
@@ -25,6 +27,8 @@ export default function Home() {
 	const [startYear, setStartYear] = useState<number | null>(null)
 	const [endYear, setEndYear] = useState<number | null>(null)
 	const [minVotes, setMinVotes] = useState<number | null>(null)
+
+	const router = useRouter()
 
 	const fetchGenres = async () => {
 		try {
@@ -48,10 +52,32 @@ export default function Home() {
 		}
 	}
 
+	const fetchUserWatchlist = async () => {
+		const userId = localStorage.getItem('userId');
+		if (!userId) return;
+
+		try {
+			const response = await fetch(`/api/watchlists?userId=${userId}`, {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			});
+			if (!response.ok) {
+				throw new Error('Failed to fetch watchlist');
+			}
+			const data = await response.json();		
+			setWatchlist(data);
+		} catch (error) {
+			console.error('Failed to fetch watchlist:', error);
+		}
+	};
+
 	useEffect(() => {
 		setLoading(true)
 		fetchPagecount()
 		fetchGenres()
+		fetchUserWatchlist()
 		setLoading(false)
 	}, [])
 
@@ -89,8 +115,41 @@ export default function Home() {
 	
 	const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
 		setPage(value)
-		//window.scrollTo({ top: 0, behavior: 'smooth' })
 	}
+
+	const handleWatchlistToggle = async (movieId: string) => {
+		const userId = localStorage.getItem('userId');
+		if (!userId) {
+			router.push('/auth');
+			return;
+		}
+
+		try {
+			const isInWatchlist = watchlist.includes(movieId);
+			const response = await fetch('/api/watchlists', {
+				method: isInWatchlist ? 'DELETE' : 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					userId,
+					movieId
+				})
+			});
+
+			if (!response.ok) {
+				throw new Error('Failed to update watchlist');
+			}
+
+			setWatchlist(prev => 
+				isInWatchlist 
+					? prev.filter(id => id !== movieId)
+					: [...prev, movieId]
+			);
+		} catch (error) {
+			console.error('Failed to update watchlist:', error);
+		}
+	};
 
 	return (
 		<div className="container p-1 text-black dark:text-white min-w-full">
@@ -129,6 +188,8 @@ export default function Home() {
 										genres={movie.genre_ids ? movie.genre_ids.map((id) => genresMap.get(id)) : null}
 										duration={movie.duration}
 										votes={movie.votes}
+										isInWatchlist={watchlist.includes(movie.id)}
+										onWatchlistToggle={handleWatchlistToggle}
 									/>
 								))}
 							</div>
