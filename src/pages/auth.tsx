@@ -50,6 +50,11 @@ export default function Auth() {
     setError('');
   };
 
+  const handleGuestMode = () => {
+    localStorage.setItem('isGuest', 'true');
+    router.push('/');
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -76,6 +81,7 @@ export default function Auth() {
       }
 
       localStorage.setItem('userId', data.id);
+      localStorage.removeItem('isGuest');
       router.push('/');
 
     } catch (err) {
@@ -255,6 +261,17 @@ export default function Auth() {
                 </Button>
               </form>
             </TabPanel>
+
+            <Box className="p-4 border-t border-gray-200">
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={handleGuestMode}
+                className="text-gray-600 border-gray-300 hover:bg-gray-50"
+              >
+                Browse as Guest
+              </Button>
+            </Box>
           </Paper>
         </Box>
       </Container>

@@ -7,8 +7,6 @@ import Header from '../../components/header';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import StarIcon from '@mui/icons-material/Star';
 import FavoriteIcon from '@mui/icons-material/Favorite';
-import AddIcon from '@mui/icons-material/Add';
-import CheckIcon from '@mui/icons-material/Check';
 import ManIcon from '@mui/icons-material/Man';
 import WomanIcon from '@mui/icons-material/Woman';
 import MovieIcon from '@mui/icons-material/Movie';
@@ -38,7 +36,6 @@ const MovieDetails = () => {
     const [genres, setGenres] = useState<Genre[]>([]);
     const [memberCategories, setMemberCategories] = useState<MovieRole[]>([]);
     const [search, setSearch] = useState<string>('');
-    const [isInWatchlist, setIsInWatchlist] = useState(false);
 
     useEffect(() => {
         if (!id) return;
@@ -85,12 +82,6 @@ const MovieDetails = () => {
         Promise.all([fetchMovie(), fetchAllGenres(), fetchAllMemberCategories()]);
     }, [id]);
 
-    const handleAddToWatchlist = () => {
-        setIsInWatchlist(!isInWatchlist);
-        // TODO: Implement add/remove from watchlist logic
-        console.log(isInWatchlist ? 'Removing from watchlist:' : 'Adding to watchlist:', id);
-    };
-
     if (loading) {
         return (
             <Box className="flex justify-center items-center h-screen bg-gray-50">
@@ -126,17 +117,6 @@ const MovieDetails = () => {
                                         objectFit="cover"
                                         className="object-cover"
                                     />
-                                    <IconButton
-                                        onClick={handleAddToWatchlist}
-                                        className={`absolute top-4 right-4 text-white shadow-lg transition-colors duration-200 ${
-                                            isInWatchlist 
-                                                ? 'bg-green-500 hover:bg-green-600' 
-                                                : 'bg-[#FFB800] hover:bg-[#FFA500]'
-                                        }`}
-                                        size="large"
-                                    >
-                                        {isInWatchlist ? <CheckIcon /> : <AddIcon />}
-                                    </IconButton>
                                 </div>
                             </div>
                         )}

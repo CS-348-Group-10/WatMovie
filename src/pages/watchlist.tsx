@@ -1,37 +1,78 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { Box, Typography, Grid, Card, CardContent, CardMedia, IconButton, CircularProgress } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
+import { Box, Typography, CircularProgress, Button } from '@mui/material';
 import Header from '../components/header';
-
-interface WatchlistMovie {
-    id: string;
-    title: string;
-    poster_url: string;
-    rating: number;
-    year: number;
-}
+import MovieCard from '../components/movieCard';
+import { Movie } from '../types';
 
 const Watchlist = () => {
     const router = useRouter();
-    const [movies, setMovies] = useState<WatchlistMovie[]>([]);
+    const [movies, setMovies] = useState<Movie[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const [isGuest, setIsGuest] = useState(false);
 
     useEffect(() => {
-        // TODO: Fetch watchlist movies from your backend
-        // For now, we'll use localStorage
-        const savedMovies = localStorage.getItem('watchlist');
-        if (savedMovies) {
-            setMovies(JSON.parse(savedMovies));
-        }
-        setLoading(false);
-    }, []);
+        const userId = localStorage.getItem('userId');
+        const guestMode = localStorage.getItem('isGuest') === 'true';
 
-    const removeFromWatchlist = (movieId: string) => {
-        const updatedMovies = movies.filter(movie => movie.id !== movieId);
-        setMovies(updatedMovies);
-        localStorage.setItem('watchlist', JSON.stringify(updatedMovies));
+        if (!userId && !guestMode) {
+            router.push('/auth');
+            return;
+        }
+
+        setIsGuest(guestMode);
+
+        if (guestMode) {
+            setLoading(false);
+            return;
+        }
+
+        const fetchWatchlistMovies = async () => {
+            try {
+                const response = await fetch(`/api/watchlists/movies?userId=${userId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch watchlist movies');
+                }
+                const data = await response.json();
+                setMovies(data);
+            } catch (error) {
+                console.error('Failed to fetch watchlist movies:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchWatchlistMovies();
+    }, [router]);
+
+    const handleWatchlistToggle = async (movieId: string) => {
+        const userId = localStorage.getItem('userId');
+        if (!userId) {
+            router.push('/auth');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/watchlists', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId,
+                    movieId
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to remove from watchlist');
+            }
+
+            setMovies(prev => prev.filter(movie => movie.id !== movieId));
+        } catch (error) {
+            console.error('Failed to remove from watchlist:', error);
+        }
     };
 
     if (loading) {
@@ -51,7 +92,23 @@ const Watchlist = () => {
                 <Typography variant="h4" className="font-bold text-gray-900 mb-8">
                     My Watchlist
                 </Typography>
-                {movies.length === 0 ? (
+                {isGuest ? (
+                    <Box className="text-center py-12">
+                        <Typography variant="h6" className="text-gray-500 mb-4">
+                            Sign up to save your favorite movies
+                        </Typography>
+                        <Typography variant="body1" className="text-gray-400 mb-8">
+                            Create an account to start building your personal watchlist
+                        </Typography>
+                        <Button
+                            variant="contained"
+                            onClick={() => router.push('/auth')}
+                            className="bg-[#FFB800] hover:bg-[#FFA500]"
+                        >
+                            Sign Up Now
+                        </Button>
+                    </Box>
+                ) : movies.length === 0 ? (
                     <Box className="text-center py-12">
                         <Typography variant="h6" className="text-gray-500 mb-4">
                             Your watchlist is empty
@@ -61,43 +118,21 @@ const Watchlist = () => {
                         </Typography>
                     </Box>
                 ) : (
-                    <Grid container spacing={4}>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-12 place-items-center">
                         {movies.map((movie) => (
-                            <Grid item xs={12} sm={6} md={4} lg={3} key={movie.id}>
-                                <Card className="h-full hover:shadow-lg transition-shadow">
-                                    <div className="relative">
-                                        <CardMedia
-                                            component="img"
-                                            height="400"
-                                            image={movie.poster_url}
-                                            alt={movie.title}
-                                            className="object-cover"
-                                        />
-                                        <IconButton
-                                            onClick={() => removeFromWatchlist(movie.id)}
-                                            className="absolute top-2 right-2 bg-black bg-opacity-50 hover:bg-opacity-75"
-                                            size="small"
-                                        >
-                                            <DeleteIcon className="text-white" />
-                                        </IconButton>
-                                    </div>
-                                    <CardContent>
-                                        <Typography variant="h6" className="font-semibold text-gray-900 truncate">
-                                            {movie.title}
-                                        </Typography>
-                                        <div className="flex items-center justify-between mt-2">
-                                            <Typography variant="body2" className="text-gray-600">
-                                                {movie.year}
-                                            </Typography>
-                                            <Typography variant="body2" className="text-gray-900 font-medium">
-                                                {movie.rating}/10
-                                            </Typography>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </Grid>
+                            <MovieCard
+                                key={movie.id}
+                                id={movie.id}
+                                movie={movie.movie}
+                                rating={movie.rating}
+                                genres={movie.genre_ids ? movie.genre_ids.map(id => id.toString()) : null}
+                                duration={movie.duration}
+                                votes={movie.votes}
+                                isInWatchlist={true}
+                                onWatchlistToggle={handleWatchlistToggle}
+                            />
                         ))}
-                    </Grid>
+                    </div>
                 )}
             </div>
         </div>
