@@ -6,10 +6,10 @@ import seedrandom from 'seedrandom'
 import pool from '@/db'
 import { getAllGenresQuery } from '@/db/queries/genres/getAllGenres'
 import { insertGenreQuery } from '@/db/queries/genres/insertGenre'
-import { insertGenreMovieQuery } from '@/db/queries/genresTitles/insertGenreMovie'
+import { insertGenreMovieQuery } from '@/db/queries/genresMovies/insertGenreMovie'
 import { insertMovieCastQuery } from '@/db/queries/movieCast/insertMovieCast'
 import { insertMovieProfessionalQuery } from '@/db/queries/movieProfessionals/insertMovieProfessional'
-import { insertIMDBRatingQuery } from '@/db/queries/movieRatings/insertMovieRating'
+import { insertIMDBRatingQuery } from '@/db/queries/imdbRatings/insertIMDBRating'
 import { getAllMovieRolesQuery } from '@/db/queries/movieRoles/getAllMovieRoles'
 import { insertMovieRoleQuery } from '@/db/queries/movieRoles/insertMovieRole'
 import { getAllMovieIdsQuery } from '@/db/queries/movies/getAllMovieIds'
@@ -200,7 +200,7 @@ const insertMovies = async (
 		}
 		return { movieIds: null }
 	} catch (error) {
-		throw new Error('Database insert failed [titles]')
+		throw new Error('Database insert failed [movies]')
 	}
 }
 
@@ -218,7 +218,7 @@ const getMovieIdsSet = async () => {
 	}
 }
 
-const insertMovieRatings = async (
+const insertIMDBRatings = async (
 	client: any,
 	movieIds: Set<string> | null = null
 ) => {
@@ -571,14 +571,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		const genreNameToIdMap = await getGenreMapping(client)
 
 		await insertMovies(client, isProduction, genreNameToIdMap)
-		console.log('🚀 titles populated')
+		console.log('🚀 movies populated')
 
 		const movieIds = await getMovieIdsSet()
 
 		// await insertUserAndRelatedData(client, movieIds)
 		// console.log('🚀 users, watchlists, and reviews populated')
 
-		await insertMovieRatings(client, movieIds)
+		await insertIMDBRatings(client, movieIds)
 		console.log('🚀 imdb_ratings populated')
 
 		const roleSet = await buildMovieRolesSet()
