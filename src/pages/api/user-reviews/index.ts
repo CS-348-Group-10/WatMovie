@@ -30,7 +30,9 @@ export default async function handler(
                     firstName: row.first_name,
                     lastName: row.last_name,
                     rating: row.rating,
-                    comment: row.comment
+                    comment: row.comment,
+                    createdAt: row.created_at,
+                    updatedAt: row.updated_at
                 }
             )))
         } catch (err) {
