@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS movie_ratings (
+CREATE TABLE IF NOT EXISTS imdb_ratings (
     mid VARCHAR(36) PRIMARY KEY,
     sum_of_votes FLOAT8 NOT NULL DEFAULT 0,
     total_votes INTEGER NOT NULL DEFAULT 0,

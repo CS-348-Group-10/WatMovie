@@ -26,7 +26,7 @@ SELECT
         WHERE MC.mid = M.mid
     ) AS cast
 FROM movies M
-LEFT JOIN movie_ratings MR ON M.mid = MR.mid
+LEFT JOIN imdb_ratings MR ON M.mid = MR.mid
 LEFT JOIN genres_movies GM ON M.mid = GM.mid
 WHERE m.mid = $1
 GROUP BY

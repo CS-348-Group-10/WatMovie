@@ -9,7 +9,7 @@ import { insertGenreQuery } from '@/db/queries/genres/insertGenre'
 import { insertGenreMovieQuery } from '@/db/queries/genresTitles/insertGenreMovie'
 import { insertMovieCastQuery } from '@/db/queries/movieCast/insertMovieCast'
 import { insertMovieProfessionalQuery } from '@/db/queries/movieProfessionals/insertMovieProfessional'
-import { insertMovieRatingQuery } from '@/db/queries/movieRatings/insertMovieRating'
+import { insertIMDBRatingQuery } from '@/db/queries/movieRatings/insertMovieRating'
 import { getAllMovieRolesQuery } from '@/db/queries/movieRoles/getAllMovieRoles'
 import { insertMovieRoleQuery } from '@/db/queries/movieRoles/insertMovieRole'
 import { getAllMovieIdsQuery } from '@/db/queries/movies/getAllMovieIds'
@@ -232,7 +232,7 @@ const insertMovieRatings = async (
 		}
 
 		await client.query(
-			insertMovieRatingQuery,
+			insertIMDBRatingQuery,
 			[
 				row.tconst,
 				Number(row.averageRating) * Number(row.numVotes),
@@ -579,7 +579,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		// console.log('🚀 users, watchlists, and reviews populated')
 
 		await insertMovieRatings(client, movieIds)
-		console.log('🚀 movie_ratings populated')
+		console.log('🚀 imdb_ratings populated')
 
 		const roleSet = await buildMovieRolesSet()
 		await insertMovieRoles(client, roleSet)

@@ -14,7 +14,7 @@ SELECT
     END AS genre_ids
 FROM movies M
 INNER JOIN watchlists W ON M.mid = W.mid
-LEFT JOIN movie_ratings MR ON M.mid = MR.mid
+LEFT JOIN imdb_ratings MR ON M.mid = MR.mid
 LEFT JOIN genres_movies GM ON M.mid = GM.mid
 WHERE 
     W.uid = $1

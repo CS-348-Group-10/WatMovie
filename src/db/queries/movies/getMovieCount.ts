@@ -2,7 +2,7 @@ export const getMovieCountQuery = `
 SELECT 
     COUNT(M.mid) AS total
 FROM movies M
-LEFT JOIN movie_ratings MR ON M.mid = MR.mid
+LEFT JOIN imdb_ratings MR ON M.mid = MR.mid
 LEFT JOIN genres_movies GM ON M.mid = GM.mid
 WHERE 
     ($1::TEXT IS NULL OR (M.name ILIKE '%' || $1 || '%'))
