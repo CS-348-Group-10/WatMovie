@@ -5,6 +5,15 @@ import { insertUserReviewQuery } from "@/db/queries/userReviews/insertUserReview
 import { updateUserReviewQuery } from "@/db/queries/userReviews/updateUserReview";
 import { NextApiRequest, NextApiResponse } from "next";
 
+const convertRowToUserReview = (row: any) => ({
+    userId: row.uid,
+    firstName: row.first_name,
+    lastName: row.last_name,
+    rating: row.rating,
+    comment: row.comment,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+})
 
 export default async function handler(
     req: NextApiRequest, 
@@ -24,15 +33,7 @@ export default async function handler(
                 [movieId]
             )
 
-            res.status(200).json(rows.map(row => (
-                {
-                    userId: row.uid, 
-                    firstName: row.first_name,
-                    lastName: row.last_name,
-                    rating: row.rating,
-                    comment: row.comment
-                }
-            )))
+            res.status(200).json(rows.map(row => convertRowToUserReview(row)))
         } catch (err) {
             console.error(err)
             res.status(400).end() // Bad Request
@@ -46,12 +47,12 @@ export default async function handler(
         }
 
         try {
-            await pool.query(
+            const { rows } = await pool.query(
                 insertUserReviewQuery,
                 [userId, movieId, rating, comment]
             )
 
-            res.status(201).end() // Created
+            res.status(201).json(rows.map(row => convertRowToUserReview(row))[0])
         } catch (err) {
             console.error(err)
             res.status(400).end() // Bad Request
@@ -66,12 +67,12 @@ export default async function handler(
 
         
         try {
-            await pool.query(
+            const { rows } = await pool.query(
                 updateUserReviewQuery,
                 [userId, movieId, rating, comment]
             )
 
-            res.status(200).end() // OK
+            res.status(200).json(rows.map(row => convertRowToUserReview(row))[0])
         } catch (err) {
             console.error(err)
             res.status(400).end() // Bad Request
