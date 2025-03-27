@@ -6,8 +6,13 @@ SELECT
     M.is_adult,
     M.release_year,
     M.runtime_minutes AS duration,
-    MR.sum_of_votes / MR.total_votes AS rating,
-    MR.total_votes AS votes,
+    ROUND((MR.sum_of_votes / MR.total_votes)::NUMERIC, 1) AS imdb_rating,
+    MR.total_votes AS imdb_votes,
+    CASE
+        WHEN M.user_rating_count = 0 THEN NULL
+        ELSE ROUND((M.user_rating_sum / M.user_rating_count)::NUMERIC, 1)
+    END AS user_rating,
+    M.user_rating_count AS user_votes,
     CASE
         WHEN COUNT(GM.gid) = 0 THEN NULL
         ELSE ARRAY_AGG(GM.gid)

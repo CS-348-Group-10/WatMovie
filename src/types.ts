@@ -30,7 +30,8 @@ export type MovieRole = {
 }
 
 export enum SortType {
-    RATING = 'rating',
+    IMDB_RATING = 'imdb_rating',
+    USER_RATING = 'user_rating',
     TITLE = 'title',
     YEAR = 'year',
     RUNTIME = 'runtime'
