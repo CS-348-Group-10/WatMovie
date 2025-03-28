@@ -42,16 +42,6 @@ export default function Home() {
 		}
 	}
 
-	const fetchPagecount = async () => {
-		try {
-			const response = await fetch('/api/movies?count=true')
-			const data = await response.json()
-			setTotalPages(data)
-		} catch (error) {
-			console.error('Failed to fetch total movies:', error)
-		}
-	}
-
 	const fetchUserWatchlist = async () => {
 		const userId = localStorage.getItem('userId');
 		if (!userId) return;
@@ -75,7 +65,6 @@ export default function Home() {
 
 	useEffect(() => {
 		setLoading(true)
-		fetchPagecount()
 		fetchGenres()
 		fetchUserWatchlist()
 		setLoading(false)
@@ -103,7 +92,8 @@ export default function Home() {
 				const url = queryString ? `api/movies?${queryParams}` : '/api/movies'
 				const res = await fetch(url)
 				const data = await res.json()
-				setMovies(data)
+				setMovies(data.movies)
+				setTotalPages(data.total_pages)
 			} catch (error) {
 				console.error('Failed to fetch movies:', error)
 			}
@@ -184,10 +174,10 @@ export default function Home() {
 										key={movie.id}
 										id={movie.id}
 										movie={movie.movie}
-										rating={movie.rating}
+										imdb_rating={movie.imdb_rating}
 										genres={movie.genre_ids ? movie.genre_ids.map((id) => genresMap.get(id)) : null}
 										duration={movie.duration}
-										votes={movie.votes}
+										imdb_votes={movie.imdb_votes}
 										isInWatchlist={watchlist.includes(movie.id)}
 										onWatchlistToggle={handleWatchlistToggle}
 									/>
@@ -195,7 +185,7 @@ export default function Home() {
 							</div>
 							<Box className="flex justify-center mt-8">
 								<Pagination
-									count={totalPages ? Math.ceil(totalPages / ITEMS_PER_PAGE) : 0}
+									count={totalPages || 1}
 									page={page}
 									onChange={handlePageChange}
 									color="primary"

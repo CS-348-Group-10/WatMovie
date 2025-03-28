@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import pool from '@/db'
 import { buildGetMoviesByPageQuery } from '@/db/queries/movies/getMoviesByPage'
 import { SortOrder, SortType } from '@/types'
-import { getMovieCountQuery } from '@/db/queries/movies/getMovieCount'
+import { buildGetMovieCountQuery } from '@/db/queries/movies/getMovieCount'
 
 const parseIds = (query: string | string[] | undefined): number[] | null => {
 	try {
@@ -93,7 +93,7 @@ export default async function handler(
 			{ rows: countRows },
 			{ rows: movieRows } 
 		] = await Promise.all([
-			pool.query(getMovieCountQuery,baseParams),
+			pool.query(buildGetMovieCountQuery(sanitizedSortType), baseParams),
 			pool.query(
 				buildGetMoviesByPageQuery(sanitizedSortType, sanitizedSortOrder),
 				[
@@ -106,10 +106,10 @@ export default async function handler(
 
 		const total_pages = Math.ceil(Math.max(Number(countRows[0].total), 1) / sanitizedPageSize)
 
-		res.status(200).json(movieRows.map(movieRow => ({
-			...movieRow,
+		res.status(200).json({
+			movies: movieRows,
 			total_pages
-		})))
+		})
 	} catch (err) {
 		console.error(err)
 		res.status(500).json({ message: 'Something went wrong' })

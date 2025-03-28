@@ -4,8 +4,8 @@ export interface Movie {
     is_adult: boolean,
     release_year: number,
     duration: number | null,
-    rating: number | null,
-    votes: number | null,
+    imdb_rating: number | null,
+    imdb_votes: number | null,
     genre_ids: number[] | null,
     cast: Cast[] | null
 }
@@ -30,7 +30,8 @@ export type MovieRole = {
 }
 
 export enum SortType {
-    RATING = 'rating',
+    IMDB_RATING = 'imdb_rating',
+    USER_RATING = 'user_rating',
     TITLE = 'title',
     YEAR = 'year',
     RUNTIME = 'runtime'

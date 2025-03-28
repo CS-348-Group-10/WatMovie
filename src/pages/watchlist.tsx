@@ -124,10 +124,10 @@ const Watchlist = () => {
                                 key={movie.id}
                                 id={movie.id}
                                 movie={movie.movie}
-                                rating={movie.rating}
+                                imdb_rating={movie.imdb_rating}
                                 genres={movie.genre_ids ? movie.genre_ids.map(id => id.toString()) : null}
                                 duration={movie.duration}
-                                votes={movie.votes}
+                                imdb_votes={movie.imdb_votes}
                                 isInWatchlist={true}
                                 onWatchlistToggle={handleWatchlistToggle}
                             />
