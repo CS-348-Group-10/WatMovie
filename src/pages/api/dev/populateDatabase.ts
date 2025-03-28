@@ -123,12 +123,11 @@ const insertMovies = async (
 			await new Promise<void>((resolve, reject) => {
 				const readStream = fs.createReadStream(TSV_TITLE_FILE).pipe(csv({ separator: '\t', escape: '', quote: '' }))
 				readStream.on('data', async (row) => {
-					lineCount++
-
 					if (row.titleType !== 'movie' || row.startYear === '\\N') {
 						return
 					}
 
+					lineCount++
 					batchRecords.push(row)
 
 					if (batchRecords.length === PROD_BATCH_SIZE) {
@@ -144,7 +143,7 @@ const insertMovies = async (
 					}
 
 					if (lineCount % 100000 === 0) {
-						console.log(`Processed ${lineCount} title records`)
+						console.log(`Processed ${lineCount} movie records`)
 					}
 				})
 
@@ -557,6 +556,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 	}
 
 	const isProduction = req.query.isProduction === 'true'
+
+	if (!isProduction) {
+		console.log('🚧 Development mode: Populating database with sample data')
+	} else {
+		console.log('🚧 Production mode: Populating database with full data')
+	}
   
 	let client: any = null
 	try {
