@@ -146,13 +146,13 @@ const MovieDetails = () => {
                             <div className="flex items-center">
                                 <StarIcon className="text-yellow-400 mr-1" />
                                 <Typography variant="h6" className="text-gray-900">
-                                    {movie.rating ?? "-"}/10
+                                    {movie.imdb_rating ?? "-"}/10
                                 </Typography>
                             </div>
                             <div className="flex items-center">
                                 <FavoriteIcon className="text-red-500 mr-1" />
                                 <Typography variant="h6" className="text-gray-900">
-                                    {movie.votes ?? "N/A"}
+                                    {movie.imdb_votes ?? "N/A"}
                                 </Typography>
                             </div>
                         </div>

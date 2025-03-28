@@ -15,15 +15,15 @@ import CheckIcon from '@mui/icons-material/Check'
 interface MovieCardProps {
   id: string;
   movie: string;
-  rating: number | null;
+  imdb_rating: number | null;
   genres: (string | undefined)[] | null;
-  votes: number | null;
+  imdb_votes: number | null;
   duration: number | null;
   isInWatchlist: boolean;
   onWatchlistToggle: (movieId: string) => Promise<void>;
 }
 
-export default function MovieCard({ id, movie, rating, genres, duration, votes, isInWatchlist, onWatchlistToggle }: MovieCardProps) {
+export default function MovieCard({ id, movie, imdb_rating, genres, duration, imdb_votes, isInWatchlist, onWatchlistToggle }: MovieCardProps) {
 	const [posterUrl, setPosterUrl] = React.useState<string>('')
 
 	React.useEffect(() => {
@@ -77,8 +77,8 @@ export default function MovieCard({ id, movie, rating, genres, duration, votes, 
 			<CardContent className="p-4">
 				<Typography gutterBottom variant="h5" component="div" sx={{fontFamily: 'fangsong'}} >{movie}</Typography>
 				<Box className="flex justify-between items-center">
-					<MovieRating value={rating} />
-					<HeartVote value={votes} />
+					<MovieRating value={imdb_rating} />
+					<HeartVote value={imdb_votes} />
 				</Box>
 				<Box className="flex justify-between items-center">
 					{genres && genres.length > 0 ? (
