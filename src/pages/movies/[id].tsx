@@ -19,7 +19,7 @@ import BuildIcon from '@mui/icons-material/Build';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import RatingTrendGraph from '../../components/ratingTrendGraph';
+import RatingTrendGraph from '../../components/RatingTrendGraph';
 
 const snakeToCapitalized = (str: string | undefined): string => {
     if (!str) return '';
