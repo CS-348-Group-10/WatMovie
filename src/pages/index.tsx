@@ -18,7 +18,7 @@ export default function Home() {
 	const [watchlist, setWatchlist] = useState<string[]>([])
 
 	const [search, setSearch] = useState<string>('')
-	const [showAdult, setShowAdult] = useState<boolean>(false)
+	const [excludeAdult, setExcludeAdult] = useState<boolean>(false)
 	const [selectedGenres, setSelectedGenres] = useState<number[]>([])
 	const [minDuration, setMinDuration] = useState<number | null>(null)
 	const [maxDuration, setMaxDuration] = useState<number | null>(null)
@@ -98,7 +98,7 @@ export default function Home() {
 				const queryParams = new URLSearchParams({
 					...(search !== '' && { searchQuery: search}),
 					...(selectedGenres.length !== 0 && { genreIds: selectedGenres.join(',')}),
-					isAdult: showAdult.toString(),
+					...(excludeAdult && { isAdult: 'false'}),
 					...(minDuration && { minDuration: minDuration.toString() }),
 					...(maxDuration && { maxDuration: maxDuration.toString()}),
 					...(minRating && { minRating: minRating.toString()}),
@@ -113,7 +113,7 @@ export default function Home() {
 				const url = queryString ? `api/movies?${queryParams}` : '/api/movies'
 				const res = await fetch(url)
 				const data = await res.json()
-				setMovies(data.movies)
+				setMovies(data.movies || [])
 				setTotalPages(data.total_pages)
 			} catch (error) {
 				console.error('Failed to fetch movies:', error)
@@ -122,7 +122,7 @@ export default function Home() {
 		}
 
 		fetchMovies()
-	}, [minDuration, maxDuration, startYear, endYear, minRating, maxRating, selectedGenres, search, showAdult, minVotes, page])
+	}, [minDuration, maxDuration, startYear, endYear, minRating, maxRating, selectedGenres, search, excludeAdult, minVotes, page])
 	
 	const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
 		setPage(value);
@@ -205,7 +205,7 @@ export default function Home() {
 						setMaxRating={(value) => handleFilterChange(setMaxRating, value)}
 						setStartYear={(value) => handleFilterChange(setStartYear, value)}
 						setEndYear={(value) => handleFilterChange(setEndYear, value)}
-						setIncludeAdult={(value) => handleFilterChange(setShowAdult, value)}
+						setExcludeAdult={(value) => handleFilterChange(setExcludeAdult, value)}
 						setMinVotes={(value) => handleFilterChange(setMinVotes, value)}
 					/>
 				</div>

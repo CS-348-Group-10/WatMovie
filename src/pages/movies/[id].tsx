@@ -20,6 +20,7 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import RatingTrendGraph from '../../components/RatingTrendGraph';
+import Link from 'next/link';
 
 const snakeToCapitalized = (str: string | undefined): string => {
     if (!str) return '';
@@ -508,38 +509,48 @@ const MovieDetails = () => {
                             {/* Review Form */}
                             {!userReview && (
                                 <div className="bg-white rounded-lg p-4 mb-6 border border-gray-200">
-                                    <Typography variant="subtitle1" className="font-semibold mb-3">Write a Review</Typography>
-                                    <div className="flex items-center mb-3">
-                                        <Rating
-                                            value={reviewRating}
-                                            onChange={(_, newValue) => setReviewRating(newValue)}
-                                            precision={0.5}
-                                            size="large"
-                                            max={10}
-                                            className="text-[#FFB800]"
-                                        />
-                                        <Typography variant="body2" className="ml-2 text-gray-600">
-                                            {reviewRating ? `${reviewRating}/10` : 'Select rating'}
-                                        </Typography>
-                                    </div>
-                                    <TextField
-                                        fullWidth
-                                        multiline
-                                        rows={3}
-                                        variant="outlined"
-                                        placeholder="Share your thoughts about this movie..."
-                                        value={reviewText}
-                                        onChange={(e) => setReviewText(e.target.value)}
-                                        className="mb-3"
-                                    />
-                                    <Button
-                                        variant="contained"
-                                        onClick={handleSubmitReview}
-                                        disabled={!reviewRating || isSubmitting}
-                                        className="bg-[#FFB800] hover:bg-[#FFA500]"
-                                    >
-                                        {isSubmitting ? 'Submitting...' : 'Submit Review'}
-                                    </Button>
+                                    {localStorage.getItem('userId') ? (
+                                        <>
+                                            <Typography variant="subtitle1" className="font-semibold mb-3">Write a Review</Typography>
+                                            <div className="flex items-center mb-3">
+                                                <Rating
+                                                    value={reviewRating}
+                                                    onChange={(_, newValue) => setReviewRating(newValue)}
+                                                    precision={0.5}
+                                                    size="large"
+                                                    max={10}
+                                                    className="text-[#FFB800]"
+                                                />
+                                                <Typography variant="body2" className="ml-2 text-gray-600">
+                                                    {reviewRating ? `${reviewRating}/10` : 'Select rating'}
+                                                </Typography>
+                                            </div>
+                                            <TextField
+                                                fullWidth
+                                                multiline
+                                                rows={3}
+                                                variant="outlined"
+                                                placeholder="Share your thoughts about this movie..."
+                                                value={reviewText}
+                                                onChange={(e) => setReviewText(e.target.value)}
+                                                className="mb-3"
+                                            />
+                                            <Button
+                                                variant="contained"
+                                                onClick={handleSubmitReview}
+                                                disabled={!reviewRating || isSubmitting}
+                                                className="bg-[#FFB800] hover:bg-[#FFA500]"
+                                            >
+                                                {isSubmitting ? 'Submitting...' : 'Submit Review'}
+                                            </Button>
+                                        </>
+                                    ) : (
+                                        <div className="text-center py-4">
+                                            <Typography variant="body1" className="text-gray-600">
+                                                Please <Link href="/auth" className="text-[#FFB800] hover:text-[#FFA500]">log in</Link> to submit a review
+                                            </Typography>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 

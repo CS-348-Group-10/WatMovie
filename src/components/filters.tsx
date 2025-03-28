@@ -1,6 +1,6 @@
 import CloseIcon from '@mui/icons-material/Close'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import { FormControlLabel, Radio, RadioGroup, TextField } from '@mui/material'
+import { FormControlLabel, Radio, RadioGroup, TextField, Checkbox } from '@mui/material'
 import MuiAccordion, { AccordionProps } from '@mui/material/Accordion'
 import MuiAccordionDetails from '@mui/material/AccordionDetails'
 import MuiAccordionSummary, {
@@ -59,7 +59,7 @@ interface FiltersProps {
     setMaxRating: (maxRating: number | null) => void;
 	setStartYear: (startYear: number | null) => void;
 	setEndYear: (endYear: number | null) => void;
-	setIncludeAdult: (includeAdult: boolean) => void;
+	setExcludeAdult: (excludeAdult: boolean) => void;
 	setMinVotes: (minVotes: number | null) => void;
 }
 
@@ -72,7 +72,7 @@ export default function Filters(filters: FiltersProps) {
 	const [endYear] = React.useState<number | null>(null)
 	const [minRating] = React.useState<number | null>(null)
 	const [maxRating] = React.useState<number | null>(null)
-	const [includeAdult, setIncludeAdult] = React.useState<boolean>(false)
+	const [excludeAdult, setExcludeAdult] = React.useState<boolean>(false)
 	const [minVotes] = React.useState<number | null>(null)
 
 	const handleGenreClick = (id: number) => {
@@ -87,7 +87,7 @@ export default function Filters(filters: FiltersProps) {
 
 	return (
 		<div>
-			<Accordion>
+			<Accordion defaultExpanded>
 				<AccordionSummary aria-controls="panel2d-content" id="panel2d-header">
 					<Typography component="span" className="font-bold">Genres</Typography>
 				</AccordionSummary>
@@ -108,7 +108,7 @@ export default function Filters(filters: FiltersProps) {
 				</AccordionDetails>
 			</Accordion>
 
-			<Accordion defaultExpanded>
+			<Accordion>
 				<AccordionSummary aria-controls="panel3d-content" id="panel3d-header">
 					<Typography component="span" className="font-bold">Duration</Typography>
 				</AccordionSummary>
@@ -190,20 +190,22 @@ export default function Filters(filters: FiltersProps) {
 					<Typography component="span" className="font-bold">Adult movies</Typography>
 				</AccordionSummary>
 				<AccordionDetails>
-					<RadioGroup
-						row
-						value={includeAdult ? 'include' : 'exclude'}
-						onChange={(e) => {
-							filters.setIncludeAdult(e.target.value === 'include')
-							setIncludeAdult(e.target.value === 'include')
-						}}
-					>
-						<FormControlLabel value="exclude" control={<Radio />} label="Exclude" />
-						<FormControlLabel value="include" control={<Radio />} label="Include" />
-					</RadioGroup>
+					<FormControlLabel
+						control={
+							<Checkbox
+								checked={excludeAdult}
+								onChange={(e) => {
+									filters.setExcludeAdult(e.target.checked)
+									setExcludeAdult(e.target.checked)
+								}}
+								className="text-[#fad02c]"
+							/>
+						}
+						label="Exclude"
+					/>
 				</AccordionDetails>
 			</Accordion>
-			<Accordion defaultExpanded>
+			<Accordion>
 				<AccordionSummary aria-controls="panel3d-content" id="panel3d-header">
 					<Typography component="span" className="font-bold">Number of votes</Typography>
 				</AccordionSummary>
