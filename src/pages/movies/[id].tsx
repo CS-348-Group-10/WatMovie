@@ -395,23 +395,6 @@ const MovieDetails = () => {
                             </Typography>
                         </div>
                         <div className="mb-8">
-                            <Typography variant="h6" className="text-gray-900 mb-3">Rating Trend</Typography>
-                            {loadingRatings ? (
-                                <Box className="flex justify-center items-center h-[400px]">
-                                    <CircularProgress className="text-[#FFB800]" />
-                                </Box>
-                            ) : ratingData.length > 0 ? (
-                                <RatingTrendGraph 
-                                    ratings={ratingData} 
-                                    movieTitle={movie?.movie || ''} 
-                                />
-                            ) : (
-                                <Typography variant="body1" className="text-gray-600 italic">
-                                    No rating data available
-                                </Typography>
-                            )}
-                        </div>
-                        <div>
                             <Typography variant="h6" className="text-gray-900 mb-4">Featured Cast</Typography>
                             {movie.cast && movie.cast.length > 0 ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pr-4">
@@ -473,6 +456,23 @@ const MovieDetails = () => {
                                 </div>
                             ) : (
                                 <Typography variant="body1" className="text-gray-600 italic">No cast information available</Typography>
+                            )}
+                        </div>
+                        <div className="mb-8">
+                            <Typography variant="h6" className="text-gray-900 mb-3">Rating Trend</Typography>
+                            {loadingRatings ? (
+                                <Box className="flex justify-center items-center h-[400px]">
+                                    <CircularProgress className="text-[#FFB800]" />
+                                </Box>
+                            ) : ratingData.length > 0 ? (
+                                <RatingTrendGraph 
+                                    ratings={ratingData} 
+                                    movieTitle={movie?.movie || ''} 
+                                />
+                            ) : (
+                                <Typography variant="body1" className="text-gray-600 italic">
+                                    No rating data available
+                                </Typography>
                             )}
                         </div>
                         <div className="mt-8">
