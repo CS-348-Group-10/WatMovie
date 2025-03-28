@@ -19,6 +19,7 @@ import BuildIcon from '@mui/icons-material/Build';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import RatingTrendGraph from '../../components/RatingTrendGraph';
 
 const snakeToCapitalized = (str: string | undefined): string => {
     if (!str) return '';
@@ -46,6 +47,8 @@ const MovieDetails = () => {
     const [userReview, setUserReview] = useState<any>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [averageUserRating, setAverageUserRating] = useState<number | null>(null);
+    const [ratingData, setRatingData] = useState<{ date: string; rating: number }[]>([]);
+    const [loadingRatings, setLoadingRatings] = useState(true);
 
     const fetchMovieData = async () => {
         try {
@@ -57,7 +60,7 @@ const MovieDetails = () => {
             console.error("Failed to fetch movie:", error);
         }
     };
-
+  
     useEffect(() => {
         if (!id) return;
         setMovie(null);
@@ -65,6 +68,8 @@ const MovieDetails = () => {
         setPosterUrl(null);
         setPosterLoading(true);
         setPlot('');
+        setRatingData([]);
+        setLoadingRatings(true);
 
         const fetchPoster = async () => {
             try {
@@ -143,7 +148,19 @@ const MovieDetails = () => {
             }
         };
 
-        Promise.all([fetchMovie(), fetchAllGenres(), fetchAllMemberCategories(), fetchReviews()]);
+        const fetchRatingData = async () => {
+            try {
+                const res = await fetch(`/api/movie-ratings?id=${id}`);
+                const data = await res.json();
+                setRatingData(data);
+            } catch (error) {
+                console.error("Failed to fetch rating data:", error);
+            } finally {
+                setLoadingRatings(false);
+            }
+        };
+
+        Promise.all([fetchMovie(), fetchAllGenres(), fetchAllMemberCategories(), fetchReviews(), fetchRatingData()]);
     }, [id]);
 
     const handleSubmitReview = async () => {
@@ -377,7 +394,7 @@ const MovieDetails = () => {
                                 {moviePlot}
                             </Typography>
                         </div>
-                        <div>
+                        <div className="mb-8">
                             <Typography variant="h6" className="text-gray-900 mb-4">Featured Cast</Typography>
                             {movie.cast && movie.cast.length > 0 ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pr-4">
@@ -439,6 +456,23 @@ const MovieDetails = () => {
                                 </div>
                             ) : (
                                 <Typography variant="body1" className="text-gray-600 italic">No cast information available</Typography>
+                            )}
+                        </div>
+                        <div className="mb-8">
+                            <Typography variant="h6" className="text-gray-900 mb-3">Rating Trend</Typography>
+                            {loadingRatings ? (
+                                <Box className="flex justify-center items-center h-[400px]">
+                                    <CircularProgress className="text-[#FFB800]" />
+                                </Box>
+                            ) : ratingData.length > 0 ? (
+                                <RatingTrendGraph 
+                                    ratings={ratingData} 
+                                    movieTitle={movie?.movie || ''} 
+                                />
+                            ) : (
+                                <Typography variant="body1" className="text-gray-600 italic">
+                                    No rating data available
+                                </Typography>
                             )}
                         </div>
                         <div className="mt-8">
