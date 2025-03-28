@@ -17,6 +17,7 @@ import MusicNoteIcon from '@mui/icons-material/MusicNote';
 import BrushIcon from '@mui/icons-material/Brush';
 import BuildIcon from '@mui/icons-material/Build';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import RatingTrendGraph from '../../components/ratingTrendGraph';
 
 const snakeToCapitalized = (str: string | undefined): string => {
     if (!str) return '';
@@ -36,6 +37,8 @@ const MovieDetails = () => {
     const [genres, setGenres] = useState<Genre[]>([]);
     const [memberCategories, setMemberCategories] = useState<MovieRole[]>([]);
     const [search, setSearch] = useState<string>('');
+    const [ratingData, setRatingData] = useState<{ date: string; rating: number }[]>([]);
+    const [loadingRatings, setLoadingRatings] = useState(true);
 
     useEffect(() => {
         if (!id) return;
@@ -43,6 +46,8 @@ const MovieDetails = () => {
         setLoading(true);
         setPosterUrl('/placeholder.png');
         setPlot('');
+        setRatingData([]);
+        setLoadingRatings(true);
 
         const fetchPoster = async () => {
             try {
@@ -79,7 +84,19 @@ const MovieDetails = () => {
             setMemberCategories(data);
         };
 
-        Promise.all([fetchMovie(), fetchAllGenres(), fetchAllMemberCategories()]);
+        const fetchRatingData = async () => {
+            try {
+                const res = await fetch(`/api/movie-ratings?id=${id}`);
+                const data = await res.json();
+                setRatingData(data);
+            } catch (error) {
+                console.error("Failed to fetch rating data:", error);
+            } finally {
+                setLoadingRatings(false);
+            }
+        };
+
+        Promise.all([fetchMovie(), fetchAllGenres(), fetchAllMemberCategories(), fetchRatingData()]);
     }, [id]);
 
     if (loading) {
@@ -161,6 +178,23 @@ const MovieDetails = () => {
                             <Typography variant="body1" className="text-gray-700 leading-relaxed">
                                 {moviePlot}
                             </Typography>
+                        </div>
+                        <div className="mb-8">
+                            <Typography variant="h6" className="text-gray-900 mb-3">Rating Trend</Typography>
+                            {loadingRatings ? (
+                                <Box className="flex justify-center items-center h-[400px]">
+                                    <CircularProgress className="text-[#FFB800]" />
+                                </Box>
+                            ) : ratingData.length > 0 ? (
+                                <RatingTrendGraph 
+                                    ratings={ratingData} 
+                                    movieTitle={movie?.movie || ''} 
+                                />
+                            ) : (
+                                <Typography variant="body1" className="text-gray-600 italic">
+                                    No rating data available
+                                </Typography>
+                            )}
                         </div>
                         <div>
                             <Typography variant="h6" className="text-gray-900 mb-4">Featured Cast</Typography>
