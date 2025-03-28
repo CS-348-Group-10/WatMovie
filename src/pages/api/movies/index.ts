@@ -43,7 +43,8 @@ export default async function handler(
 		const {
 			searchQuery, 
 			isAdult,
-			releaseYear,
+			startYear,
+			endYear,
 			minDuration,
 			maxDuration,
 			minRating,
@@ -63,8 +64,8 @@ export default async function handler(
 
 		const sanitizedSearchQuery = searchQuery ? String(searchQuery) : null 
 		const sanitizedIsAdult = parseBoolean(isAdult)
-		const sanitizedStartYear = releaseYear && !isNaN(Number(releaseYear)) ? Number(releaseYear) : null
-		const sanitizedEndYear = releaseYear && !isNaN(Number(releaseYear)) ? Number(releaseYear) : null
+		const sanitizedStartYear = startYear && !isNaN(Number(startYear)) ? Number(startYear) : null
+		const sanitizedEndYear = endYear && !isNaN(Number(endYear)) ? Number(endYear) : null
 		const sanitizedMinDuration = minDuration && !isNaN(Number(minDuration)) ? Number(minDuration) : null
 		const sanitizedMaxDuration = maxDuration && !isNaN(Number(maxDuration)) ? Number(maxDuration) : null
 		const sanitizedMinRating = minRating && !isNaN(Number(minRating)) ? Number(minRating) : null
