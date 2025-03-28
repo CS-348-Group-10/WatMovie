@@ -19,8 +19,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // Transform the data to match the expected format
         const formattedRatings = ratings.map(rating => ({
-            date: rating.rating_hour.toISOString(),
-            rating: parseFloat(rating.six_hour_moving_avg)
+            date: rating.rating_day.toISOString(),
+            rating: parseFloat(rating.cumulative_moving_avg)
         }));
 
         return res.status(200).json(formattedRatings);

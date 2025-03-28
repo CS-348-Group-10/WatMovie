@@ -17,7 +17,7 @@ import MusicNoteIcon from '@mui/icons-material/MusicNote';
 import BrushIcon from '@mui/icons-material/Brush';
 import BuildIcon from '@mui/icons-material/Build';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import RatingTrendGraph from '../../components/ratingTrendGraph';
+import RatingTrendGraph from '../../components/RatingTrendGraph';
 
 const snakeToCapitalized = (str: string | undefined): string => {
     if (!str) return '';

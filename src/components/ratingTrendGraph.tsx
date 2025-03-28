@@ -33,10 +33,9 @@ interface RatingTrendGraphProps {
 const RatingTrendGraph = ({ ratings, movieTitle }: RatingTrendGraphProps) => {
     const formatTime = (date: string) => {
         const d = new Date(date);
-        return d.toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
+        return d.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric'
         });
     };
 
@@ -44,16 +43,16 @@ const RatingTrendGraph = ({ ratings, movieTitle }: RatingTrendGraphProps) => {
         labels: ratings.map(r => formatTime(r.date)),
         datasets: [
             {
-                label: '6-Hour Moving Average',
+                label: 'Rating Average',
                 data: ratings.map(r => r.rating),
                 borderColor: '#FFB800',
                 backgroundColor: 'rgba(255, 184, 0, 0.1)',
-                borderWidth: 2,
+                borderWidth: 3,
                 pointBackgroundColor: '#FFB800',
                 pointBorderColor: '#fff',
                 pointBorderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 6,
+                pointRadius: 5,
+                pointHoverRadius: 8,
                 tension: 0.4,
                 fill: true
             }
@@ -69,7 +68,7 @@ const RatingTrendGraph = ({ ratings, movieTitle }: RatingTrendGraphProps) => {
         },
         plugins: {
             legend: {
-                display: false,
+                display: false
             },
             title: {
                 display: true,
@@ -89,6 +88,13 @@ const RatingTrendGraph = ({ ratings, movieTitle }: RatingTrendGraphProps) => {
                 padding: 12,
                 displayColors: false,
                 callbacks: {
+                    title: (context: any) => {
+                        const date = new Date(ratings[context[0].dataIndex].date);
+                        return date.toLocaleDateString('en-US', {
+                            month: 'long',
+                            day: 'numeric'
+                        });
+                    },
                     label: (context: any) => {
                         return `Rating: ${context.parsed.y.toFixed(1)}/10`;
                     }
@@ -106,7 +112,8 @@ const RatingTrendGraph = ({ ratings, movieTitle }: RatingTrendGraphProps) => {
                     stepSize: 1,
                     font: {
                         size: 12
-                    }
+                    },
+                    padding: 10
                 },
                 title: {
                     display: true,
@@ -127,11 +134,12 @@ const RatingTrendGraph = ({ ratings, movieTitle }: RatingTrendGraphProps) => {
                 ticks: {
                     font: {
                         size: 12
-                    }
+                    },
+                    padding: 10
                 },
                 title: {
                     display: true,
-                    text: 'Time (Last 24 Hours)',
+                    text: 'Time (Last 7 Days)',
                     font: {
                         size: 12,
                         weight: 'bold' as const
