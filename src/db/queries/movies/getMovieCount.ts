@@ -13,9 +13,9 @@ WHERE
     AND ($3::INTEGER IS NULL OR M.release_year >= $3)
     AND ($4::INTEGER IS NULL OR M.release_year <= $4)
     AND ($5::INTEGER IS NULL OR M.runtime_minutes >= $5)
-    AND ($7::INTEGER IS NULL OR M.runtime_minutes <= $6)
-    AND ($7::INTEGER IS NULL OR (MR.sum_of_votes / MR.total_votes >= $7))
-    AND ($8::INTEGER IS NULL OR (MR.sum_of_votes / MR.total_votes <= $8))
+    AND ($6::INTEGER IS NULL OR M.runtime_minutes <= $6)
+    AND ($7::NUMERIC IS NULL OR (MR.sum_of_votes / MR.total_votes >= $7))
+    AND ($8::NUMERIC IS NULL OR (MR.sum_of_votes / MR.total_votes <= $8))
     AND ($9::INTEGER IS NULL OR MR.total_votes >= $9)
     AND ($10::INTEGER[] IS NULL OR GM.gid = ANY($10))
     ${getSortingNotNullCondition(sortBy)}
