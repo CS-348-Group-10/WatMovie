@@ -6,6 +6,8 @@ export interface Movie {
     duration: number | null,
     imdb_rating: number | null,
     imdb_votes: number | null,
+    user_rating: number | null,
+    user_votes: number | null,
     genre_ids: number[] | null,
     cast: Cast[] | null
 }
