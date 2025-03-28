@@ -167,26 +167,46 @@ export default function Home() {
 		}
 	};
 
+	const handleSearchChange = (value: string) => {
+		setSearch(value)
+		setPage(1)
+		localStorage.setItem('currentPage', '1')
+		router.push({
+			pathname: '/',
+			query: { page: 1 }
+		}, undefined, { shallow: true })
+	}
+
+	const handleFilterChange = (setter: (value: any) => void, value: any) => {
+		setter(value)
+		setPage(1)
+		localStorage.setItem('currentPage', '1')
+		router.push({
+			pathname: '/',
+			query: { page: 1 }
+		}, undefined, { shallow: true })
+	}
+
 	return (
 		<div className="container p-1 text-black dark:text-white min-w-full">
 			<div className="fixed top-0 left-0 w-full bg-white shadow-md z-50">
 				<Header 
-					setSearch={setSearch}
+					setSearch={handleSearchChange}
 				/>
 			</div>
 			<div className="flex h-screen pt-20">
 				<div className="w-1/4 p-4 overflow-y-auto">
 					<Filters
 						genres={genresMap}
-						setSelectedGenres={setSelectedGenres}
-						setMinDuration={setMinDuration}
-						setMaxDuration={setMaxDuration}
-						setMinRating={setMinRating}
-						setMaxRating={setMaxRating}
-						setStartYear={setStartYear}
-						setEndYear={setEndYear}
-						setIncludeAdult={setShowAdult}
-						setMinVotes={setMinVotes}
+						setSelectedGenres={(value) => handleFilterChange(setSelectedGenres, value)}
+						setMinDuration={(value) => handleFilterChange(setMinDuration, value)}
+						setMaxDuration={(value) => handleFilterChange(setMaxDuration, value)}
+						setMinRating={(value) => handleFilterChange(setMinRating, value)}
+						setMaxRating={(value) => handleFilterChange(setMaxRating, value)}
+						setStartYear={(value) => handleFilterChange(setStartYear, value)}
+						setEndYear={(value) => handleFilterChange(setEndYear, value)}
+						setIncludeAdult={(value) => handleFilterChange(setShowAdult, value)}
+						setMinVotes={(value) => handleFilterChange(setMinVotes, value)}
 					/>
 				</div>
 				<div className="w-full p-4 overflow-y-auto">

@@ -45,6 +45,18 @@ const MovieDetails = () => {
     const [reviews, setReviews] = useState<any[]>([]); // Replace 'any' with your Review type
     const [userReview, setUserReview] = useState<any>(null);
     const [isEditing, setIsEditing] = useState(false);
+    const [averageUserRating, setAverageUserRating] = useState<number | null>(null);
+
+    const fetchMovieData = async () => {
+        try {
+            const res = await fetch(`/api/movie?id=${id}`);
+            const data = await res.json();
+            setMovie(data);
+            setAverageUserRating(data.user_rating);
+        } catch (error) {
+            console.error("Failed to fetch movie:", error);
+        }
+    };
 
     useEffect(() => {
         if (!id) return;
@@ -82,6 +94,7 @@ const MovieDetails = () => {
                 const res = await fetch(`/api/movie?id=${id}`);
                 const data = await res.json();
                 setMovie(data);
+                setAverageUserRating(data.user_rating);
                 fetchPoster();
             } catch (error) {
                 console.error("Failed to fetch movie:", error);
@@ -188,6 +201,9 @@ const MovieDetails = () => {
             setReviewRating(0);
             setReviewText('');
             setIsEditing(false);
+            
+            // Fetch updated movie data
+            await fetchMovieData();
         } catch (error) {
             console.error('Failed to submit review:', error);
         } finally {
@@ -241,6 +257,9 @@ const MovieDetails = () => {
             setReviewRating(0);
             setReviewText('');
             setIsEditing(false);
+            
+            // Fetch updated movie data
+            await fetchMovieData();
         } catch (error) {
             console.error('Failed to delete review:', error);
         } finally {
@@ -423,8 +442,35 @@ const MovieDetails = () => {
                             )}
                         </div>
                         <div className="mt-8">
-                            <Typography variant="h6" className="text-gray-900 mb-4">Reviews</Typography>
-                            
+                            <Typography variant="h5" className="font-bold mb-4">Reviews</Typography>
+                            {averageUserRating !== null && (
+                                <Box className="mb-6 p-6 bg-gradient-to-r from-[#FFB800]/10 to-[#FFA500]/10 rounded-lg border border-[#FFB800]/20">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <Typography variant="h6" className="font-semibold text-gray-900">
+                                            Average User Rating
+                                        </Typography>
+                                        <div className="flex items-center gap-1">
+                                            <StarIcon className="text-[#FFB800]" />
+                                            <Typography variant="h5" className="font-bold text-[#FFB800]">
+                                                {averageUserRating}
+                                            </Typography>
+                                        </div>
+                                    </div>
+                                    <Box className="flex items-center gap-2">
+                                        <Rating 
+                                            value={averageUserRating} 
+                                            precision={0.1} 
+                                            readOnly 
+                                            size="large"
+                                            max={10}
+                                            className="text-[#FFB800]"
+                                        />
+                                    </Box>
+                                    <Typography variant="body2" className="mt-2 text-gray-600">
+                                        Based on {movie.user_votes} user ratings
+                                    </Typography>
+                                </Box>
+                            )}
                             {/* Review Form */}
                             {!userReview && (
                                 <div className="bg-white rounded-lg p-4 mb-6 border border-gray-200">
