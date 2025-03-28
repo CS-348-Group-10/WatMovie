@@ -61,7 +61,6 @@ const MovieDetails = () => {
         }
     };
   
-
     useEffect(() => {
         if (!id) return;
         setMovie(null);
