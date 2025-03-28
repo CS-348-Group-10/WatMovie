@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { Movie, Genre, Cast, MovieRole } from "@/types";
 import Image from 'next/image';
-import { CircularProgress, Container, CardContent, Typography, Chip, Box, ListItem, ListItemText, IconButton, Avatar } from "@mui/material";
+import { CircularProgress, Container, CardContent, Typography, Chip, Box, ListItem, ListItemText, IconButton, Avatar, TextField, Button, Rating } from "@mui/material";
 import Header from '../../components/header';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import StarIcon from '@mui/icons-material/Star';
@@ -17,6 +17,8 @@ import MusicNoteIcon from '@mui/icons-material/MusicNote';
 import BrushIcon from '@mui/icons-material/Brush';
 import BuildIcon from '@mui/icons-material/Build';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const snakeToCapitalized = (str: string | undefined): string => {
     if (!str) return '';
@@ -31,17 +33,25 @@ const MovieDetails = () => {
     const { id } = router.query;
     const [movie, setMovie] = useState<Movie | null>(null);
     const [loading, setLoading] = useState(true);
-    const [moviePosterUrl, setPosterUrl] = useState<string>('/placeholder.png');
+    const [moviePosterUrl, setPosterUrl] = useState<string | null>(null);
+    const [posterLoading, setPosterLoading] = useState(true);
     const [moviePlot, setPlot] = useState<string>('');
     const [genres, setGenres] = useState<Genre[]>([]);
     const [memberCategories, setMemberCategories] = useState<MovieRole[]>([]);
     const [search, setSearch] = useState<string>('');
+    const [reviewRating, setReviewRating] = useState<number | null>(0);
+    const [reviewText, setReviewText] = useState<string>('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [reviews, setReviews] = useState<any[]>([]); // Replace 'any' with your Review type
+    const [userReview, setUserReview] = useState<any>(null);
+    const [isEditing, setIsEditing] = useState(false);
 
     useEffect(() => {
         if (!id) return;
         setMovie(null);
         setLoading(true);
-        setPosterUrl('/placeholder.png');
+        setPosterUrl(null);
+        setPosterLoading(true);
         setPlot('');
 
         const fetchPoster = async () => {
@@ -49,9 +59,22 @@ const MovieDetails = () => {
                 const response = await fetch(`http://www.omdbapi.com/?apikey=${process.env.NEXT_PUBLIC_POSTER_API_KEY}&i=${id}&plot='full'`);
                 if (!response.ok) throw new Error('Failed to fetch poster');
                 const data = await response.json();
-                setPosterUrl(data.Poster === 'N/A' || data.Error ? '/placeholder.png' : data.Poster);
+                
+                // Check if the poster URL is valid
+                const isValidPosterUrl = data.Poster && 
+                    data.Poster !== 'N/A' && 
+                    !data.Error && 
+                    response.ok && 
+                    response.status === 200 &&
+                    data.Poster.startsWith('http');
+
+                setPosterUrl(isValidPosterUrl ? data.Poster : '/placeholder.png');
                 setPlot(data.Plot);
-            } catch (error) {}
+            } catch (error) {
+                setPosterUrl('/placeholder.png');
+            } finally {
+                setPosterLoading(false);
+            }
         };
 
         const fetchMovie = async () => {
@@ -79,8 +102,168 @@ const MovieDetails = () => {
             setMemberCategories(data);
         };
 
-        Promise.all([fetchMovie(), fetchAllGenres(), fetchAllMemberCategories()]);
+        const fetchReviews = async () => {
+            try {
+                const res = await fetch(`/api/user-reviews?movieId=${id}`);
+                if (!res.ok) throw new Error('Failed to fetch reviews');
+                const data = await res.json();
+                
+                // Sort reviews by created_at in descending order
+                const sortedReviews = data.sort((a: any, b: any) => 
+                    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                );
+                
+                setReviews(sortedReviews);
+                
+                // Check if current user has a review
+                const userId = localStorage.getItem('userId');
+                if (userId) {
+                    const userReview = sortedReviews.find((review: any) => review.userId === parseInt(userId));
+                    if (userReview) {
+                        setUserReview(userReview);
+                        setReviewRating(userReview.rating);
+                        setReviewText(userReview.comment || '');
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch reviews:", error);
+            }
+        };
+
+        Promise.all([fetchMovie(), fetchAllGenres(), fetchAllMemberCategories(), fetchReviews()]);
     }, [id]);
+
+    const handleSubmitReview = async () => {
+        if (!reviewRating) return;
+        
+        setIsSubmitting(true);
+        try {
+            const userId = localStorage.getItem('userId');
+
+            if (!userId) {
+                throw new Error('User not authenticated');
+            }
+
+            const endpoint = '/api/user-reviews';
+            const method = userReview ? 'PUT' : 'POST';
+
+            const response = await fetch(endpoint, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    movieId: id,
+                    userId: userId,
+                    rating: reviewRating,
+                    comment: reviewText.trim() || null,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) throw new Error('Failed to submit review');
+
+            const updatedReview = {
+                userId: parseInt(userId),
+                rating: reviewRating,
+                comment: reviewText.trim() || null,
+                firstName: 'You',
+                lastName: '',
+                createdAt: data.createdAt,
+                updatedAt: data.updatedAt,
+            };
+
+            if (userReview) {
+                // Update existing review in the list
+                setReviews(reviews.map(review => 
+                    review.userId === parseInt(userId) ? updatedReview : review
+                ));
+            } else {
+                // Add new review to the list
+                setReviews([updatedReview, ...reviews]);
+            }
+
+            setUserReview(updatedReview);
+            setReviewRating(0);
+            setReviewText('');
+            setIsEditing(false);
+        } catch (error) {
+            console.error('Failed to submit review:', error);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleEditClick = () => {
+        if (userReview) {
+            setReviewRating(userReview.rating);
+            setReviewText(userReview.comment || '');
+        }
+        setIsEditing(true);
+    };
+
+    const handleCancelEdit = () => {
+        setIsEditing(false);
+        // Reset form to original values
+        if (userReview) {
+            setReviewRating(userReview.rating);
+            setReviewText(userReview.comment || '');
+        }
+    };
+
+    const handleDeleteReview = async () => {
+        if (!userReview) return;
+        
+        setIsSubmitting(true);
+        try {
+            const userId = localStorage.getItem('userId');
+            if (!userId) {
+                throw new Error('User not authenticated');
+            }
+
+            const response = await fetch('/api/user-reviews', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    movieId: id,
+                    userId: userId,
+                }),
+            });
+
+            if (!response.ok) throw new Error('Failed to delete review');
+
+            // Remove the review from the local state
+            setReviews(reviews.filter(review => review.userId !== parseInt(userId)));
+            setUserReview(null);
+            setReviewRating(0);
+            setReviewText('');
+            setIsEditing(false);
+        } catch (error) {
+            console.error('Failed to delete review:', error);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleBack = () => {
+        const currentPage = localStorage.getItem('currentPage');
+        if (currentPage) {
+            const parsedPage = parseInt(currentPage);
+            if (!isNaN(parsedPage)) {
+                router.push({
+                    pathname: '/',
+                    query: { page: parsedPage }
+                }, undefined, { shallow: true });
+            } else {
+                router.push('/');
+            }
+        } else {
+            router.push('/');
+        }
+    };
 
     if (loading) {
         return (
@@ -106,22 +289,35 @@ const MovieDetails = () => {
             <div className="pt-20">
                 <div className="flex flex-col md:flex-row min-h-[calc(100vh-80px)]">
                     <div className="relative w-full md:w-1/3">
-                        {moviePosterUrl && (
+                        <IconButton 
+                            onClick={handleBack}
+                            className="absolute top-4 left-4 z-10 text-white bg-[#FFB800]/80 hover:bg-[#FFB800] hover:text-white"
+                            size="large"
+                        >
+                            <ArrowBackIcon />
+                        </IconButton>
+                        {!posterLoading && moviePosterUrl && (
                             <div className="sticky top-20 h-[calc(100vh-80px)] flex items-center justify-center py-20">
                                 <div className="relative w-full h-full">
                                     <Image
                                         loader={(prop) => prop.src}
                                         src={moviePosterUrl}
-                                        alt={movie.movie}
+                                        alt={movie?.movie}
                                         layout="fill"
                                         objectFit="cover"
                                         className="object-cover"
+                                        onError={() => setPosterUrl('/placeholder.png')}
                                     />
                                 </div>
                             </div>
                         )}
+                        {posterLoading && (
+                            <div className="sticky top-20 h-[calc(100vh-80px)] flex items-center justify-center py-20">
+                                <div className="relative w-full h-full bg-gray-100 animate-pulse" />
+                            </div>
+                        )}
                     </div>
-                    <div className="flex-1 p-8">
+                    <div className="flex-1 p-8 overflow-y-auto max-h-[calc(100vh-80px)]">
                         <Typography variant="h3" className="font-bold text-gray-900 mb-4">{movie.movie}</Typography>
                         <div className="flex items-center gap-4 text-gray-600 mb-6">
                             <span>{movie.release_year}</span>
@@ -165,7 +361,7 @@ const MovieDetails = () => {
                         <div>
                             <Typography variant="h6" className="text-gray-900 mb-4">Featured Cast</Typography>
                             {movie.cast && movie.cast.length > 0 ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto pr-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pr-4">
                                     {movie.cast.sort((a, b) => a.ordering - b.ordering).map((actor: Cast) => {
                                         const getRoleIcon = (roleId: number) => {
                                             switch (roleId) {
@@ -188,7 +384,7 @@ const MovieDetails = () => {
 
                                         return (
                                             <ListItem 
-                                                key={actor.id} 
+                                                key={`${actor.id}-${actor.ordering}`}
                                                 className="bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors p-4"
                                             >
                                                 <div className="flex items-start space-x-3">
@@ -225,6 +421,160 @@ const MovieDetails = () => {
                             ) : (
                                 <Typography variant="body1" className="text-gray-600 italic">No cast information available</Typography>
                             )}
+                        </div>
+                        <div className="mt-8">
+                            <Typography variant="h6" className="text-gray-900 mb-4">Reviews</Typography>
+                            
+                            {/* Review Form */}
+                            {!userReview && (
+                                <div className="bg-white rounded-lg p-4 mb-6 border border-gray-200">
+                                    <Typography variant="subtitle1" className="font-semibold mb-3">Write a Review</Typography>
+                                    <div className="flex items-center mb-3">
+                                        <Rating
+                                            value={reviewRating}
+                                            onChange={(_, newValue) => setReviewRating(newValue)}
+                                            precision={0.5}
+                                            size="large"
+                                            max={10}
+                                            className="text-[#FFB800]"
+                                        />
+                                        <Typography variant="body2" className="ml-2 text-gray-600">
+                                            {reviewRating ? `${reviewRating}/10` : 'Select rating'}
+                                        </Typography>
+                                    </div>
+                                    <TextField
+                                        fullWidth
+                                        multiline
+                                        rows={3}
+                                        variant="outlined"
+                                        placeholder="Share your thoughts about this movie..."
+                                        value={reviewText}
+                                        onChange={(e) => setReviewText(e.target.value)}
+                                        className="mb-3"
+                                    />
+                                    <Button
+                                        variant="contained"
+                                        onClick={handleSubmitReview}
+                                        disabled={!reviewRating || isSubmitting}
+                                        className="bg-[#FFB800] hover:bg-[#FFA500]"
+                                    >
+                                        {isSubmitting ? 'Submitting...' : 'Submit Review'}
+                                    </Button>
+                                </div>
+                            )}
+
+                            <div className="space-y-4">
+                                {reviews.length > 0 ? (
+                                    reviews.map((review) => (
+                                        <div key={review.userId} className="bg-gray-50 rounded-lg p-4">
+                                            <div className="flex items-center mb-2">
+                                                <Avatar className="bg-[#FFB800] mr-2">
+                                                    {review.firstName ? review.firstName.charAt(0) : '?'}
+                                                </Avatar>
+                                                <div className="flex-1">
+                                                    <div className="flex items-center justify-between">
+                                                        <Typography variant="subtitle1" className="font-semibold">
+                                                            {userReview && userReview.userId === review.userId ? 'You' : `${review.firstName} ${review.lastName}`}
+                                                        </Typography>
+                                                        {userReview && userReview.userId === review.userId && (
+                                                            <div className="flex gap-1">
+                                                                <IconButton 
+                                                                    onClick={handleEditClick}
+                                                                    className="text-gray-500 hover:text-[#FFB800]"
+                                                                >
+                                                                    <EditIcon />
+                                                                </IconButton>
+                                                                <IconButton 
+                                                                    onClick={handleDeleteReview}
+                                                                    className="text-gray-500 hover:text-red-500"
+                                                                    disabled={isSubmitting}
+                                                                >
+                                                                    <DeleteIcon />
+                                                                </IconButton>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex items-center">
+                                                        <StarIcon className="text-yellow-400 text-sm mr-1" />
+                                                        <Typography variant="body2" className="text-gray-600">
+                                                            {review.rating}/10
+                                                        </Typography>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {isEditing && userReview && userReview.userId === review.userId ? (
+                                                <div className="mt-4">
+                                                    <div className="flex items-center mb-3">
+                                                        <Rating
+                                                            value={reviewRating}
+                                                            onChange={(_, newValue) => setReviewRating(newValue)}
+                                                            precision={0.5}
+                                                            size="large"
+                                                            max={10}
+                                                            className="text-[#FFB800]"
+                                                        />
+                                                        <Typography variant="body2" className="ml-2 text-gray-600">
+                                                            {reviewRating ? `${reviewRating}/10` : 'Select rating'}
+                                                        </Typography>
+                                                    </div>
+                                                    <TextField
+                                                        fullWidth
+                                                        multiline
+                                                        rows={3}
+                                                        variant="outlined"
+                                                        placeholder="Share your thoughts about this movie..."
+                                                        value={reviewText}
+                                                        onChange={(e) => setReviewText(e.target.value)}
+                                                        className="mb-3"
+                                                    />
+                                                    <div className="flex gap-2">
+                                                        <Button
+                                                            variant="contained"
+                                                            onClick={handleSubmitReview}
+                                                            disabled={!reviewRating || isSubmitting}
+                                                            className="bg-[#FFB800] hover:bg-[#FFA500]"
+                                                        >
+                                                            {isSubmitting ? 'Updating...' : 'Update Review'}
+                                                        </Button>
+                                                        <Button
+                                                            variant="outlined"
+                                                            onClick={handleCancelEdit}
+                                                            className="text-gray-600"
+                                                        >
+                                                            Cancel
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    {review.comment && (
+                                                        <Typography variant="body2" className="text-gray-700">
+                                                            {review.comment}
+                                                        </Typography>
+                                                    )}
+                                                    <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
+                                                        <Typography variant="caption">
+                                                            Posted on {new Date(review.createdAt).toLocaleDateString()}
+                                                        </Typography>
+                                                        {review.updatedAt && review.updatedAt !== review.createdAt && (
+                                                            <>
+                                                                <span>•</span>
+                                                                <Typography variant="caption" className="italic">
+                                                                    Edited on {new Date(review.updatedAt).toLocaleDateString()}
+                                                                </Typography>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <Typography variant="body1" className="text-gray-600 italic">
+                                        No reviews yet. Be the first to review this movie!
+                                    </Typography>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>

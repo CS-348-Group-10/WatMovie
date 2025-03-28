@@ -11,6 +11,7 @@ const Watchlist = () => {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [isGuest, setIsGuest] = useState(false);
+    const [genres, setGenres] = useState<Map<number, string>>(new Map());
 
     useEffect(() => {
         const userId = localStorage.getItem('userId');
@@ -43,7 +44,24 @@ const Watchlist = () => {
             }
         };
 
-        fetchWatchlistMovies();
+        const fetchGenres = async () => {
+            try {
+                const response = await fetch('/api/genres');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch genres');
+                }
+                const data = await response.json();
+                const genreMap = new Map<number, string>();
+                data.forEach((genre: { id: number, name: string }) => {
+                    genreMap.set(genre.id, genre.name);
+                });
+                setGenres(genreMap);
+            } catch (error) {
+                console.error('Failed to fetch genres:', error);
+            }
+        };
+
+        Promise.all([fetchWatchlistMovies(), fetchGenres()]);
     }, [router]);
 
     const handleWatchlistToggle = async (movieId: string) => {
@@ -125,7 +143,7 @@ const Watchlist = () => {
                                 id={movie.id}
                                 movie={movie.movie}
                                 imdb_rating={movie.imdb_rating}
-                                genres={movie.genre_ids ? movie.genre_ids.map(id => id.toString()) : null}
+                                genres={movie.genre_ids ? movie.genre_ids.map(id => genres.get(id) || '') : null}
                                 duration={movie.duration}
                                 imdb_votes={movie.imdb_votes}
                                 isInWatchlist={true}

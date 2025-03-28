@@ -71,6 +71,27 @@ export default function Home() {
 	}, [])
 
 	useEffect(() => {
+		// Set initial page from URL query or localStorage
+		const urlPage = router.query.page ? parseInt(router.query.page as string) : null;
+		const storedPage = localStorage.getItem('currentPage');
+		
+		if (urlPage) {
+			setPage(urlPage);
+			localStorage.setItem('currentPage', urlPage.toString());
+		} else if (storedPage) {
+			const parsedStoredPage = parseInt(storedPage);
+			if (!isNaN(parsedStoredPage)) {
+				setPage(parsedStoredPage);
+				// Update URL to match stored page
+				router.push({
+					pathname: '/',
+					query: { page: parsedStoredPage }
+				}, undefined, { shallow: true });
+			}
+		}
+	}, [router.query.page]);
+
+	useEffect(() => {
 		const fetchMovies = async () => {
 			setMoviesLoaded(true)
 			try {
@@ -104,7 +125,12 @@ export default function Home() {
 	}, [minDuration, maxDuration, startYear, endYear, minRating, maxRating, selectedGenres, search, showAdult, minVotes, page])
 	
 	const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
-		setPage(value)
+		setPage(value);
+		localStorage.setItem('currentPage', value.toString());
+		router.push({
+			pathname: '/',
+			query: { page: value }
+		}, undefined, { shallow: true });
 	}
 
 	const handleWatchlistToggle = async (movieId: string) => {
@@ -180,6 +206,7 @@ export default function Home() {
 										imdb_votes={movie.imdb_votes}
 										isInWatchlist={watchlist.includes(movie.id)}
 										onWatchlistToggle={handleWatchlistToggle}
+										currentPage={page}
 									/>
 								))}
 							</div>
