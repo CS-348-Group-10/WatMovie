@@ -14,14 +14,13 @@ import { getAllMovieRolesQuery } from '@/db/queries/movieRoles/getAllMovieRoles'
 import { insertMovieRoleQuery } from '@/db/queries/movieRoles/insertMovieRole'
 import { getAllMovieIdsQuery } from '@/db/queries/movies/getAllMovieIds'
 import { insertMovieQuery } from '@/db/queries/movies/insertMovie'
-import { insertUserReviewWithTimestampsQuery } from '@/db/queries/userReviews/insertUserReview'
 import { insertUserQuery } from '@/db/queries/users/insertUser'
-import { insertWatchlistQuery } from '@/db/queries/watchlists/insertWatchlist'
 import { exec } from 'child_process'
 import { promisify } from 'util'
 
 const execAsync = promisify(exec)
 const USERS_CSV_FILE = path.join(process.cwd(), 'public', 'users.csv')
+const USER_REVIEWS_CSV_FILE = path.join(process.cwd(), 'public', 'user_reviews.csv')
 const TSV_TITLE_FILE = path.join(process.cwd(), 'public', 'title.tsv')
 const TSV_RATINGS_FILE = path.join(process.cwd(), 'public', 'title.ratings.tsv')
 const TSV_PRINCIPALS_FILE = path.join(process.cwd(), 'public', 'title.principals.tsv')
@@ -71,7 +70,6 @@ const processUsersBatch = async (
 		await client.query('COMMIT')
 		return insertedUids
 	} catch (error) {
-		console.log(error)
 		await client.query('ROLLBACK')
 		throw new Error('Users batch insert failed: ' + error)
 	}
@@ -105,7 +103,7 @@ const populateUsers = async (client: any) => {
 			userIds.push(...batchUids)
 			processedCount += batch.length
 
-			if (processedCount % 100 === 0) {
+			if (processedCount % BATCH_SIZE === 0) {
 				console.log(`Processed ${processedCount} user records`)
 			}
 		}
@@ -577,38 +575,29 @@ const generateUserReviewsCSV = async () => {
 	}
 }
 
-const processUserReviewsBatch = async (
-	client: any,
-	batchRecords: any[]
-) => {
+const processUserReviewsBatch = async (client: any, batch: any[]) => {
 	try {
 		await client.query('BEGIN')
 
-		for (const record of batchRecords) {
-			await client.query(
-				insertUserReviewWithTimestampsQuery,
-				[
-					record.uid,
-					record.mid,
-					record.rating,
-					record.comment,
-					record.created_at,
-					record.updated_at
-				]
-			)
-		}
-		
+		const values = batch.map(record => 
+			`(${record.uid}, '${record.mid}', ${record.rating}, '${record.comment.replace(/'/g, "''")}', '${record.created_at}', '${record.updated_at}')`
+		).join(',')
+
+		await client.query(`
+			INSERT INTO user_reviews (uid, mid, rating, comment, created_at, updated_at)
+			VALUES ${values}
+				ON CONFLICT (uid, mid) DO NOTHING
+		`)
+
 		await client.query('COMMIT')
 	} catch (error) {
-		console.log(error)
 		await client.query('ROLLBACK')
-		throw new Error('User reviews batch insert failed: ' + error)
+		throw new Error('User reviews batch insert failed' + error)
 	}
 }
 
 const populateUserReviews = async (client: any) => {
 	try {
-		// First generate the user_reviews.csv file
 		await generateUserReviewsCSV()
 
 		console.log('🚧 Populating user reviews table from user_reviews.csv')
@@ -616,15 +605,15 @@ const populateUserReviews = async (client: any) => {
 		// Read all records first
 		const records: any[] = []
 		await new Promise<void>((resolve, reject) => {
-			fs.createReadStream(path.join(process.cwd(), 'public', 'user_reviews.csv'))
+			fs.createReadStream(USER_REVIEWS_CSV_FILE)
 				.pipe(csv(CSV_PARSER_OPTIONS))
 				.on('data', (row) => records.push(row))
 				.on('end', resolve)
 				.on('error', reject)
 		})
 
-		// Process records in batches
-		const BATCH_SIZE = 1000
+		// Process records in batches of 10,000
+		const BATCH_SIZE = 10000
 		let processedCount = 0
 
 		for (let i = 0; i < records.length; i += BATCH_SIZE) {
@@ -632,13 +621,12 @@ const populateUserReviews = async (client: any) => {
 			await processUserReviewsBatch(client, batch)
 			processedCount += batch.length
 
-			if (processedCount % 1000 === 0) {
-				console.log(`Processed ${processedCount} user review records`)
+			if (processedCount % BATCH_SIZE === 0) {
+				console.log(`Processed ${processedCount} user reviews`)
 			}
 		}
 
-		console.log(`🚀 Successfully populated ${processedCount} user reviews`)
-		return processedCount
+		console.log(`✅ Successfully inserted ${processedCount} user reviews`)
 	} catch (error) {
 		throw new Error('Failed to populate user reviews: ' + error)
 	}
@@ -661,39 +649,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 	try {
 		client = await pool.connect()
 
-		// Build genres set
-		// const genresSet = await buildGenreSet()
+		const genresSet = await buildGenreSet()
 
-		// await insertGenres(client, genresSet)
-		// console.log('🚀 genres populated')
+		await insertGenres(client, genresSet)
+		console.log('🚀 genres populated')
 
-		// const genreNameToIdMap = await getGenreMapping(client)
+		const genreNameToIdMap = await getGenreMapping(client)
 
-		// await insertMovies(client, isProduction, genreNameToIdMap)
-		// console.log('🚀 movies populated')
+		await insertMovies(client, isProduction, genreNameToIdMap)
+		console.log('🚀 movies populated')
 
-		// const movieIds = await getMovieIdsSet()
+		const movieIds = await getMovieIdsSet()
 
-		const uids = await populateUsers(client)
+		await insertIMDBRatings(client, movieIds)
+		console.log('🚀 imdb_ratings populated')
+
+		const roleSet = await buildMovieRolesSet()
+		await insertMovieRoles(client, roleSet)
+		console.log('🚀 movie_roles populated')
+
+		const movieProfessionalIds = await getRelatedMovieProfessionalIds(movieIds)
+		const missingProfessionalIds = await insertMovieProfessionals(client, movieProfessionalIds)
+		console.log('🚀 movie_professionals populated')
+
+		const roleToIdMap = await getMovieRolesMapping(client)
+		await insertMovieCast(client, roleToIdMap, movieIds, missingProfessionalIds)
+		console.log('🚀 movie_cast populated')
+
+		// Populate users and user reviews
+		await populateUsers(client)
 		console.log(`🚀 users populated`)
 
-		const reviewCount = await populateUserReviews(client)
+		await populateUserReviews(client)
 		console.log(`🚀 user_reviews populated`)
 
-		// await insertIMDBRatings(client, movieIds)
-		// console.log('🚀 imdb_ratings populated')
-
-		// const roleSet = await buildMovieRolesSet()
-		// await insertMovieRoles(client, roleSet)
-		// console.log('🚀 movie_roles populated')
-
-		// const movieProfessionalIds = await getRelatedMovieProfessionalIds(movieIds)
-		// const missingProfessionalIds = await insertMovieProfessionals(client, movieProfessionalIds)
-		// console.log('🚀 movie_professionals populated')
-
-		// const roleToIdMap = await getMovieRolesMapping(client)
-		// await insertMovieCast(client, roleToIdMap, movieIds, missingProfessionalIds)
-		// console.log('🚀 movie_cast populated')
 		res.status(200).json({ message: 'Database populated successfully' })
 	} catch (error) {
 		console.error(error)

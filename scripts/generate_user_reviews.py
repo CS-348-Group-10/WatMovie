@@ -4,16 +4,20 @@ import random
 from datetime import datetime, timedelta
 import psycopg2
 from faker import Faker
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 fake = Faker()
 
 # Database connection parameters
 DB_PARAMS = {
-    'dbname': 'watmovie',
-    'user': 'watmovieuser',
-    'password': 'watmovie',
-    'host': 'localhost',
-    'port': '5432'
+    'dbname': os.getenv('DB_NAME'),
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD'),
+    'host': os.getenv('DB_HOST'),
+    'port': os.getenv('DB_PORT')
 }
 
 def get_highly_rated_movies():
@@ -101,7 +105,6 @@ def generate_reviews(users, movies):
             # Generate a rating between 1 and 10
             rating = round(random.uniform(1, 10), 1)
             
-            # Generate a random date between March 20, 2025 and April 5, 2025
             random_days = random.randint(0, (end_date - start_date).days)
             created_at = start_date + timedelta(days=random_days)
             
