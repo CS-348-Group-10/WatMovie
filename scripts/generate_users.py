@@ -19,12 +19,20 @@ def generate_users(n=1000):
         })
     return users
 
-def save_to_csv(users, filename="../public/users.csv"):
-    os.makedirs(os.path.dirname(filename), exist_ok=True)
-    with open(filename, mode="w", newline="", encoding="utf-8") as file:
+def save_to_csv(users, filename="public/users.csv"):
+    # Get the absolute path to the project root
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    file_path = os.path.join(project_root, filename)
+    
+    print(f"Creating file at: {file_path}")
+    with open(file_path, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.DictWriter(file, fieldnames=["first_name", "last_name", "email", "password"])
         writer.writeheader()
         writer.writerows(users)
+    print(f"Successfully created {filename}")
 
-users = generate_users()
-save_to_csv(users)
+if __name__ == "__main__":
+    print("Generating users...")
+    users = generate_users()
+    print(f"Generated {len(users)} users")
+    save_to_csv(users)

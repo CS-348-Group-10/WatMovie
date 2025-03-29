@@ -14,7 +14,7 @@ import { getAllMovieRolesQuery } from '@/db/queries/movieRoles/getAllMovieRoles'
 import { insertMovieRoleQuery } from '@/db/queries/movieRoles/insertMovieRole'
 import { getAllMovieIdsQuery } from '@/db/queries/movies/getAllMovieIds'
 import { insertMovieQuery } from '@/db/queries/movies/insertMovie'
-import { insertUserReviewQuery } from '@/db/queries/userReviews/insertUserReview'
+import { insertUserReviewWithTimestampsQuery } from '@/db/queries/userReviews/insertUserReview'
 import { insertUserQuery } from '@/db/queries/users/insertUser'
 import { insertWatchlistQuery } from '@/db/queries/watchlists/insertWatchlist'
 import { exec } from 'child_process'
@@ -562,81 +562,85 @@ const insertMovieCast = async (
 	}
 }
 
-const insertUserAndRelatedData = async (
+const generateUserReviewsCSV = async () => {
+	try {
+		console.log('🚧 Running generate_user_reviews.py script...')
+		const { stdout, stderr } = await execAsync('python scripts/generate_user_reviews.py')
+		if (stderr) {
+			console.error('Error running Python script:', stderr)
+			throw new Error('Failed to generate user reviews CSV')
+		}
+		console.log('✅ Successfully generated user_reviews.csv')
+	} catch (error) {
+		console.error('Error:', error)
+		throw error
+	}
+}
+
+const processUserReviewsBatch = async (
 	client: any,
-	movieIds: Set<string> | null = null
+	batchRecords: any[]
 ) => {
 	try {
 		await client.query('BEGIN')
 
-		for (let i = 0; i < 100; i++) {
+		for (const record of batchRecords) {
 			await client.query(
-				insertUserQuery,
+				insertUserReviewWithTimestampsQuery,
 				[
-					`First Name ${i}`,
-					`Last Name ${i}`,
-					`email${i}@abc.com`,
-					`password${i}`
+					record.uid,
+					record.mid,
+					record.rating,
+					record.comment,
+					record.created_at,
+					record.updated_at
 				]
 			)
 		}
-
-		const rng = seedrandom('2025')
-
-		if (!movieIds) {
-			movieIds = new Set<string>()
-			for (let i = 0; i < 100; i++) {
-				const randomNum = Math.floor(rng() * 10000000) // 0 to 9999999
-				const randomTitleId = `tt${randomNum.toString().padStart(7, '0')}`
-				movieIds.add(randomTitleId)
-			}
-		}
-
-		const movieIdsArray = Array.from(movieIds)
-
-		for (let i = 0; i < 100; i++) {
-			const numWatchlist = Math.floor(rng() * 6) // generates 0 to 5 watchlist entries per user
-			// Create a copy of movieIdsArray to ensure unique movieIds for this user's watchlist
-			const availableTitleIds = [...movieIdsArray]
-			for (let j = 0; j < numWatchlist; j++) {
-				const randomIndex = Math.floor(rng() * availableTitleIds.length)
-				const randomTitleId = availableTitleIds.splice(randomIndex, 1)[0]
-				await client.query(
-					insertWatchlistQuery,
-					[
-						i, 
-						randomTitleId
-					]
-				)
-			}
-		}
-
-		// Insert review entries with a random titleId (unique per user) and a random rating between 1 and 10,
-		// with up to 5 reviews per user
-		for (let i = 0; i < 100; i++) {
-			const numReviews = Math.floor(rng() * 6) // generates 0 to 5 reviews per user
-			// Create a copy of movieIdsArray to ensure unique movieIds for this user's reviews
-			const availableTitleIds = [...movieIdsArray]
-			for (let j = 0; j < numReviews; j++) {
-				const randomIndex = Math.floor(rng() * availableTitleIds.length)
-				const randomTitleId = availableTitleIds.splice(randomIndex, 1)[0]
-				const randomRating = Math.floor(rng() * 10) + 1 // random rating between 1 and 10
-				await client.query(
-					insertUserReviewQuery,
-					[
-						i,                    // user id or review id depending on design
-						randomTitleId,
-						randomRating,
-						`Great movie! ${i} review ${j}`  // review content (adjust as needed)
-					]
-				)
-			}
-		}
-
+		
 		await client.query('COMMIT')
 	} catch (error) {
+		console.log(error)
 		await client.query('ROLLBACK')
-		throw new Error('Database insert failed [users]')
+		throw new Error('User reviews batch insert failed: ' + error)
+	}
+}
+
+const populateUserReviews = async (client: any) => {
+	try {
+		// First generate the user_reviews.csv file
+		await generateUserReviewsCSV()
+
+		console.log('🚧 Populating user reviews table from user_reviews.csv')
+		
+		// Read all records first
+		const records: any[] = []
+		await new Promise<void>((resolve, reject) => {
+			fs.createReadStream(path.join(process.cwd(), 'public', 'user_reviews.csv'))
+				.pipe(csv(CSV_PARSER_OPTIONS))
+				.on('data', (row) => records.push(row))
+				.on('end', resolve)
+				.on('error', reject)
+		})
+
+		// Process records in batches
+		const BATCH_SIZE = 1000
+		let processedCount = 0
+
+		for (let i = 0; i < records.length; i += BATCH_SIZE) {
+			const batch = records.slice(i, i + BATCH_SIZE)
+			await processUserReviewsBatch(client, batch)
+			processedCount += batch.length
+
+			if (processedCount % 1000 === 0) {
+				console.log(`Processed ${processedCount} user review records`)
+			}
+		}
+
+		console.log(`🚀 Successfully populated ${processedCount} user reviews`)
+		return processedCount
+	} catch (error) {
+		throw new Error('Failed to populate user reviews: ' + error)
 	}
 }
 
@@ -668,10 +672,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		// await insertMovies(client, isProduction, genreNameToIdMap)
 		// console.log('🚀 movies populated')
 
-		const movieIds = await getMovieIdsSet()
+		// const movieIds = await getMovieIdsSet()
 
 		const uids = await populateUsers(client)
 		console.log(`🚀 users populated`)
+
+		const reviewCount = await populateUserReviews(client)
+		console.log(`🚀 user_reviews populated`)
 
 		// await insertIMDBRatings(client, movieIds)
 		// console.log('🚀 imdb_ratings populated')
@@ -687,7 +694,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		// const roleToIdMap = await getMovieRolesMapping(client)
 		// await insertMovieCast(client, roleToIdMap, movieIds, missingProfessionalIds)
 		// console.log('🚀 movie_cast populated')
-	
 		res.status(200).json({ message: 'Database populated successfully' })
 	} catch (error) {
 		console.error(error)
