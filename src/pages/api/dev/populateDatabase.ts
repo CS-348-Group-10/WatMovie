@@ -53,9 +53,10 @@ const processUsersBatch = async (
 ) => {
 	try {
 		await client.query('BEGIN')
+		const insertedUids: number[] = []
 
 		for (const record of batchRecords) {
-			await client.query(
+			const result = await client.query(
 				insertUserQuery,
 				[
 					record.first_name,
@@ -64,9 +65,11 @@ const processUsersBatch = async (
 					record.password
 				]
 			)
+			insertedUids.push(result.rows[0].uid)
 		}
 		
 		await client.query('COMMIT')
+		return insertedUids
 	} catch (error) {
 		console.log(error)
 		await client.query('ROLLBACK')
@@ -94,10 +97,12 @@ const populateUsers = async (client: any) => {
 		// Process records in batches
 		const BATCH_SIZE = 100
 		let processedCount = 0
+		const userIds: number[] = []
 
 		for (let i = 0; i < records.length; i += BATCH_SIZE) {
 			const batch = records.slice(i, i + BATCH_SIZE)
-			await processUsersBatch(client, batch)
+			const batchUids = await processUsersBatch(client, batch)
+			userIds.push(...batchUids)
 			processedCount += batch.length
 
 			if (processedCount % 100 === 0) {
@@ -106,7 +111,7 @@ const populateUsers = async (client: any) => {
 		}
 
 		console.log(`🚀 Successfully populated ${processedCount} users`)
-		return processedCount
+		return userIds
 	} catch (error) {
 		throw new Error('Failed to populate users: ' + error)
 	}
@@ -665,7 +670,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		const movieIds = await getMovieIdsSet()
 
-		await populateUsers(client)
+		const uids = await populateUsers(client)
 		console.log(`🚀 users populated`)
 
 		// await insertIMDBRatings(client, movieIds)
