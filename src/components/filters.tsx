@@ -116,7 +116,7 @@ export default function Filters(filters: FiltersProps) {
 					<Typography component="span">In minutes</Typography>
 					<div className="flex flex-wrap gap-2">
 						<TextField
-							value={minDuration}
+							//value={minDuration}
 							onChange={(e) => filters.setMinDuration(Number(e.target.value))}
 							placeholder="e.g. 1"
 							type="number"
@@ -124,7 +124,7 @@ export default function Filters(filters: FiltersProps) {
 						/>
 						<Typography component="span" className='flex items-center'>to</Typography>
 						<TextField
-							value={maxDuration}
+							//value={maxDuration}
 							onChange={(e) => filters.setMaxDuration(Number(e.target.value))}
 							placeholder="e.g. 180"
 							type="number"
@@ -167,7 +167,7 @@ export default function Filters(filters: FiltersProps) {
 				<AccordionDetails>
 					<div className="flex flex-wrap gap-2">
 						<TextField
-							value={minRating}
+							// value={minRating}
 							onChange={(e) => filters.setMinRating(Number(e.target.value))}
 							placeholder="e.g. 1"
 							type="number"
@@ -175,7 +175,7 @@ export default function Filters(filters: FiltersProps) {
 						/>
 						<Typography component="span" className='flex items-center'>to</Typography>
 						<TextField
-							value={maxRating}
+							//value={maxRating}
 							onChange={(e) => filters.setMaxRating(Number(e.target.value))}
 							placeholder="e.g. 9.8"
 							type="number"
@@ -214,7 +214,10 @@ export default function Filters(filters: FiltersProps) {
 					<div className="flex flex-wrap gap-2">
 						<TextField
 							value={minVotes}
-							onChange={(e) => filters.setMinVotes(Number(e.target.value))}
+							onChange={(e) => {
+								filters.setMinVotes(Number(e.target.value))
+								setMinVotes(Number(e.target.value))
+							}}
 							placeholder="e.g. 1"
 							type="number"
 							className='flex-1'

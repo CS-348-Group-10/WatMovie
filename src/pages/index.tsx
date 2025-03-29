@@ -200,7 +200,7 @@ export default function Home() {
 						genres={genresMap}
 						setSelectedGenres={(value) => handleFilterChange(setSelectedGenres, value)}
 						setMinDuration={(value) => handleFilterChange(setMinDuration, value)}
-						setMaxDuration={(value) => handleFilterChange(setMaxDuration, value)}
+						setMaxDuratio ={(value) => handleFilterChange(setMaxDuration, value)}
 						setMinRating={(value) => handleFilterChange(setMinRating, value)}
 						setMaxRating={(value) => handleFilterChange(setMaxRating, value)}
 						setStartYear={(value) => handleFilterChange(setStartYear, value)}
