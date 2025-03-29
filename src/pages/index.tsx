@@ -126,7 +126,6 @@ export default function Home() {
 	useEffect(() => {
 		if (search != null) {
 			fetchMovies()
-			setSearch(null)
 		}
 	}, [search])
 
