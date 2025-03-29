@@ -3,7 +3,7 @@ import Filters from '../components/filters'
 import Header from '../components/header'
 import MovieCard from '../components/movieCard'
 import { Movie } from '../types'
-import { Box, Pagination } from "@mui/material";
+import { Box, Pagination, Button } from "@mui/material";
 import { useRouter } from 'next/router';
 
 const ITEMS_PER_PAGE = 12; // Number of movies to show per page
@@ -17,7 +17,8 @@ export default function Home() {
 	const [totalPages, setTotalPages] = useState<number | null>(null)
 	const [watchlist, setWatchlist] = useState<string[]>([])
 
-	const [search, setSearch] = useState<string>('')
+	const [search, setSearch] = useState<string | null>(null)
+	const [filtersList, setFiltersList] = useState<boolean>(false)
 	const [excludeAdult, setExcludeAdult] = useState<boolean>(false)
 	const [selectedGenres, setSelectedGenres] = useState<number[]>([])
 	const [minDuration, setMinDuration] = useState<number | null>(null)
@@ -63,10 +64,40 @@ export default function Home() {
 		}
 	};
 
+	const fetchMovies = async () => {
+		setMoviesLoaded(true)
+		try {
+			const queryParams = new URLSearchParams({
+				...(search && search !== '' && { searchQuery: search}),
+				...(selectedGenres.length !== 0 && { genreIds: selectedGenres.join(',')}),
+				...(excludeAdult && { isAdult: 'false'}),
+				...(minDuration && { minDuration: minDuration.toString() }),
+				...(maxDuration && { maxDuration: maxDuration.toString()}),
+				...(minRating && { minRating: minRating.toString()}),
+				...(maxRating && { maxRating: maxRating.toString()}),
+				...(startYear && { startYear: startYear.toString()}),
+				...(endYear && { endYear: endYear.toString()}),
+				...(minVotes && { minVotes: minVotes.toString()}),
+				pageSize: ITEMS_PER_PAGE.toString(),
+				page: page.toString()
+			})
+			const queryString = queryParams.toString()
+			const url = queryString ? `api/movies?${queryParams}` : '/api/movies'
+			const res = await fetch(url)
+			const data = await res.json()
+			setMovies(data.movies || [])
+			setTotalPages(data.total_pages)
+		} catch (error) {
+			console.error('Failed to fetch movies:', error)
+		}
+		setMoviesLoaded(false)
+	};
+
 	useEffect(() => {
 		setLoading(true)
 		fetchGenres()
 		fetchUserWatchlist()
+		fetchMovies()
 		setLoading(false)
 	}, [])
 
@@ -91,38 +122,21 @@ export default function Home() {
 		}
 	}, [router.query.page]);
 
+	// search
 	useEffect(() => {
-		const fetchMovies = async () => {
-			setMoviesLoaded(true)
-			try {
-				const queryParams = new URLSearchParams({
-					...(search !== '' && { searchQuery: search}),
-					...(selectedGenres.length !== 0 && { genreIds: selectedGenres.join(',')}),
-					...(excludeAdult && { isAdult: 'false'}),
-					...(minDuration && { minDuration: minDuration.toString() }),
-					...(maxDuration && { maxDuration: maxDuration.toString()}),
-					...(minRating && { minRating: minRating.toString()}),
-					...(maxRating && { maxRating: maxRating.toString()}),
-					...(startYear && { startYear: startYear.toString()}),
-					...(endYear && { endYear: endYear.toString()}),
-					...(minVotes && { minVotes: minVotes.toString()}),
-					pageSize: ITEMS_PER_PAGE.toString(),
-					page: page.toString()
-				})
-				const queryString = queryParams.toString()
-				const url = queryString ? `api/movies?${queryParams}` : '/api/movies'
-				const res = await fetch(url)
-				const data = await res.json()
-				setMovies(data.movies || [])
-				setTotalPages(data.total_pages)
-			} catch (error) {
-				console.error('Failed to fetch movies:', error)
-			}
-			setMoviesLoaded(false)
+		if (search != null) {
+			fetchMovies()
+			setSearch(null)
 		}
+	}, [search])
 
-		fetchMovies()
-	}, [minDuration, maxDuration, startYear, endYear, minRating, maxRating, selectedGenres, search, excludeAdult, minVotes, page])
+	// filters
+	useEffect(() => {
+		if (filtersList) {
+			fetchMovies()
+			setFiltersList(false)
+		}
+	}, [filtersList])
 	
 	const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
 		setPage(value);
@@ -208,6 +222,22 @@ export default function Home() {
 						setExcludeAdult={(value) => handleFilterChange(setExcludeAdult, value)}
 						setMinVotes={(value) => handleFilterChange(setMinVotes, value)}
 					/>
+					<div className="flex justify-between mt-4">
+						<Button
+							variant="contained"
+							className="bg-gray-500 hover:bg-gray-400 text-white"
+							onClick={() => router.reload()}
+						>
+							Reset
+						</Button>
+						<Button
+							variant="contained"
+							className="bg-[#FFB800] hover:bg-[#FFA500] text-white"
+							onClick={() => setFiltersList(true)}
+						>
+							Filter
+						</Button>
+					</div>
 				</div>
 				<div className="w-full p-4 overflow-y-auto">
 					{moviesLoaded || loading ? (
