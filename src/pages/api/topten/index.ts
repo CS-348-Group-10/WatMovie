@@ -1,4 +1,5 @@
 import pool from "@/db";
+import { createTopTenMoviesView, getTopTenMoviesQuery } from "@/db/queries/topten/getTopTenMovies";
 import { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(
@@ -10,7 +11,8 @@ export default async function handler(
     }
 
     try {
-        const { rows } = await pool.query('SELECT * FROM top_10_movies');
+        await pool.query(createTopTenMoviesView);
+        const { rows } = await pool.query(getTopTenMoviesQuery);
         res.status(200).json(rows);
     } catch (err) {
         console.error('Error fetching top 10 movies:', err);
