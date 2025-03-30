@@ -10,28 +10,21 @@ const Watchlist = () => {
     const [movies, setMovies] = useState<Movie[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
-    const [isGuest, setIsGuest] = useState(false);
     const [genres, setGenres] = useState<Map<number, string>>(new Map());
+    const [userId, setUserId] = useState<string | null>(null);
 
     useEffect(() => {
-        const userId = localStorage.getItem('userId');
-        const guestMode = localStorage.getItem('isGuest') === 'true';
+        const currentUserId = localStorage.getItem('userId');
+        setUserId(currentUserId);
 
-        if (!userId && !guestMode) {
-            router.push('/auth');
-            return;
-        }
-
-        setIsGuest(guestMode);
-
-        if (guestMode) {
+        if (!currentUserId) {
             setLoading(false);
             return;
         }
 
         const fetchWatchlistMovies = async () => {
             try {
-                const response = await fetch(`/api/watchlists/movies?userId=${userId}`);
+                const response = await fetch(`/api/watchlists/movies?userId=${currentUserId}`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch watchlist movies');
                 }
@@ -65,7 +58,6 @@ const Watchlist = () => {
     }, [router]);
 
     const handleWatchlistToggle = async (movieId: string) => {
-        const userId = localStorage.getItem('userId');
         if (!userId) {
             router.push('/auth');
             return;
@@ -110,7 +102,7 @@ const Watchlist = () => {
                 <Typography variant="h4" className="font-bold text-gray-900 mb-8">
                     My Watchlist
                 </Typography>
-                {isGuest ? (
+                {!userId ? (
                     <Box className="text-center py-12">
                         <Typography variant="h6" className="text-gray-500 mb-4">
                             Sign up to save your favorite movies
