@@ -139,7 +139,7 @@ const TopTen = () => {
                                     <div className="flex items-center gap-4">
                                         <div className="flex items-center gap-2 text-gray-700">
                                             <span className="text-[#FFB800] font-bold text-xl">★</span>
-                                            <span className="text-lg font-bold">{movie.average_rating.toFixed(1)}</span>
+                                            <span className="text-lg font-bold">{movie.average_rating.toFixed(2)}</span>
                                             <span className="text-sm text-gray-500">
                                                 ({movie.user_rating_count.toLocaleString()} votes)
                                             </span>
