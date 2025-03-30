@@ -17,6 +17,7 @@ import { insertMovieQuery } from '@/db/queries/movies/insertMovie'
 import { insertUserQuery } from '@/db/queries/users/insertUser'
 import { exec } from 'child_process'
 import { promisify } from 'util'
+import { updateMovieUserRatingQuery } from '@/db/queries/movies/updateMovieUserRating'
 
 const execAsync = promisify(exec)
 const USERS_CSV_FILE = path.join(process.cwd(), 'public', 'users.csv')
@@ -676,12 +677,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		await insertMovieCast(client, roleToIdMap, movieIds, missingProfessionalIds)
 		console.log('🚀 movie_cast populated')
 
-		// Populate users and user reviews
 		await populateUsers(client)
 		console.log(`🚀 users populated`)
 
 		await populateUserReviews(client)
 		console.log(`🚀 user_reviews populated`)
+
+		await pool.query(updateMovieUserRatingQuery)
+		console.log('🚀 movies user ratings updated')
 
 		res.status(200).json({ message: 'Database populated successfully' })
 	} catch (error) {
