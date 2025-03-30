@@ -117,27 +117,6 @@ export default function Home() {
 		setLoading(false)
 	}, [])
 
-	useEffect(() => {
-		// Set initial page from URL query or localStorage
-		const urlPage = router.query.page ? parseInt(router.query.page as string) : null;
-		const storedPage = localStorage.getItem('currentPage');
-		
-		if (urlPage) {
-			setPage(urlPage);
-			localStorage.setItem('currentPage', urlPage.toString());
-		} else if (storedPage) {
-			const parsedStoredPage = parseInt(storedPage);
-			if (!isNaN(parsedStoredPage)) {
-				setPage(parsedStoredPage);
-				// Update URL to match stored page
-				router.push({
-					pathname: '/',
-					query: { page: parsedStoredPage }
-				}, undefined, { shallow: true });
-			}
-		}
-	}, [router.query.page]);
-
 	// search
 	useEffect(() => {
 		if (search != null) {
@@ -151,10 +130,13 @@ export default function Home() {
 			fetchMovies()
 		}
 	}, [sortType, sortOrder])
+
+	useEffect(() => {
+		fetchMovies()
+	}, [page])
 	
 	const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
 		setPage(value);
-		localStorage.setItem('currentPage', value.toString());
 		router.push({
 			pathname: '/',
 			query: { page: value }
@@ -198,7 +180,6 @@ export default function Home() {
 	const handleSearchChange = (value: string) => {
 		setSearch(value)
 		setPage(1)
-		localStorage.setItem('currentPage', '1')
 		router.push({
 			pathname: '/',
 			query: { page: 1 }
@@ -208,7 +189,6 @@ export default function Home() {
 	const handleFilterChange = (setter: (value: any) => void, value: any) => {
 		setter(value)
 		setPage(1)
-		localStorage.setItem('currentPage', '1')
 		router.push({
 			pathname: '/',
 			query: { page: 1 }
@@ -321,7 +301,6 @@ export default function Home() {
 										imdb_votes={movie.imdb_votes}
 										isInWatchlist={watchlist.includes(movie.id)}
 										onWatchlistToggle={handleWatchlistToggle}
-										currentPage={page}
 									/>
 								))}
 							</div>

@@ -11,6 +11,7 @@ import Link from 'next/link'
 import IconButton from '@mui/material/IconButton'
 import AddIcon from '@mui/icons-material/Add'
 import CheckIcon from '@mui/icons-material/Check'
+import { useRouter } from 'next/router'
 
 interface MovieCardProps {
   id: string;
@@ -21,12 +22,12 @@ interface MovieCardProps {
   duration: number | null;
   isInWatchlist: boolean;
   onWatchlistToggle: (movieId: string) => Promise<void>;
-  currentPage?: number;
 }
 
-export default function MovieCard({ id, movie, imdb_rating, genres, duration, imdb_votes, isInWatchlist, onWatchlistToggle, currentPage }: MovieCardProps) {
+export default function MovieCard({ id, movie, imdb_rating, genres, duration, imdb_votes, isInWatchlist, onWatchlistToggle }: MovieCardProps) {
 	const [posterUrl, setPosterUrl] = React.useState<string>('')
 	const [imageError, setImageError] = React.useState<boolean>(false)
+	const router = useRouter()
 
 	React.useEffect(() => {
 		const fetchPoster = async () => {
@@ -66,11 +67,7 @@ export default function MovieCard({ id, movie, imdb_rating, genres, duration, im
 
 	const handleMovieClick = (e: React.MouseEvent) => {
 		e.preventDefault(); // Prevent default navigation
-		if (currentPage) {
-			localStorage.setItem('currentPage', currentPage.toString());
-		}
-		// Manually navigate after storing the page
-		window.location.href = `/movies/${id}`;
+		router.push(`/movies/${id}`);
 	};
 
 	return (
