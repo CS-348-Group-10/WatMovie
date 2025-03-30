@@ -70,10 +70,10 @@ export default function Filters(filters: FiltersProps) {
 	const [maxDuration] = React.useState<number | null>(null)
 	const [startYear] = React.useState<number | null>(null)
 	const [endYear] = React.useState<number | null>(null)
-	const [minRating] = React.useState<number | null>(null)
+	const [minRating, setMinRating] = React.useState<number | null>(7)
 	const [maxRating] = React.useState<number | null>(null)
 	const [excludeAdult, setExcludeAdult] = React.useState<boolean>(false)
-	const [minVotes] = React.useState<number | null>(null)
+	const [minVotes, setMinVotes] = React.useState<number | null>(2000)
 
 	const handleGenreClick = (id: number) => {
 		if (selectedGenres.includes(id)) {
@@ -87,7 +87,7 @@ export default function Filters(filters: FiltersProps) {
 
 	return (
 		<div>
-			<Accordion defaultExpanded>
+			<Accordion>
 				<AccordionSummary aria-controls="panel2d-content" id="panel2d-header">
 					<Typography component="span" className="font-bold">Genres</Typography>
 				</AccordionSummary>
@@ -168,7 +168,10 @@ export default function Filters(filters: FiltersProps) {
 					<div className="flex flex-wrap gap-2">
 						<TextField
 							value={minRating}
-							onChange={(e) => filters.setMinRating(Number(e.target.value))}
+							onChange={(e) => {
+								filters.setMinRating(Number(e.target.value));
+								setMinRating(Number(e.target.value) > 0 ? Number(e.target.value) : null);
+							}}
 							placeholder="e.g. 1"
 							type="number"
 							className='flex-1'
@@ -185,7 +188,7 @@ export default function Filters(filters: FiltersProps) {
 					</div>
 				</AccordionDetails>
 			</Accordion>
-			<Accordion defaultExpanded>
+			<Accordion>
 				<AccordionSummary aria-controls="panel4d-content" id="panel4d-header">
 					<Typography component="span" className="font-bold">Adult movies</Typography>
 				</AccordionSummary>
@@ -205,7 +208,7 @@ export default function Filters(filters: FiltersProps) {
 					/>
 				</AccordionDetails>
 			</Accordion>
-			<Accordion>
+			<Accordion defaultExpanded>
 				<AccordionSummary aria-controls="panel3d-content" id="panel3d-header">
 					<Typography component="span" className="font-bold">Number of votes</Typography>
 				</AccordionSummary>
@@ -214,7 +217,10 @@ export default function Filters(filters: FiltersProps) {
 					<div className="flex flex-wrap gap-2">
 						<TextField
 							value={minVotes}
-							onChange={(e) => filters.setMinVotes(Number(e.target.value))}
+							onChange={(e) => {
+								filters.setMinVotes(Number(e.target.value));
+								setMinVotes(Number(e.target.value) > 0 ? Number(e.target.value) : null);
+							}}
 							placeholder="e.g. 1"
 							type="number"
 							className='flex-1'

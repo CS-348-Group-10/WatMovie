@@ -2,11 +2,24 @@ import { useEffect, useState } from 'react'
 import Filters from '../components/filters'
 import Header from '../components/header'
 import MovieCard from '../components/movieCard'
-import { Movie } from '../types'
-import { Box, Pagination } from "@mui/material";
+import { Movie, SortType, SortOrder } from '../types'
+import { Box, Pagination, FormControl, Select, InputLabel, MenuItem, IconButton, Button } from "@mui/material";
+import { ArrowUpward, ArrowDownward } from '@mui/icons-material';
 import { useRouter } from 'next/router';
 
 const ITEMS_PER_PAGE = 12; // Number of movies to show per page
+
+type SortOption = {
+	value: string;
+	label: string;
+}
+
+const sortOptions: SortOption[] = [
+	{ value: SortType.TITLE, label: 'Title (A - Z)' },
+	{ value: SortType.IMDB_RATING, label: 'IMDb Rating' },
+	{ value: SortType.YEAR, label: 'Year' },
+	{ value: SortType.RUNTIME, label: 'Runtime' }
+];
 
 export default function Home() {
 	const [genresMap, setGenresMap] = useState(new Map<number, string>())
@@ -16,17 +29,19 @@ export default function Home() {
 	const [page, setPage] = useState(1)
 	const [totalPages, setTotalPages] = useState<number | null>(null)
 	const [watchlist, setWatchlist] = useState<string[]>([])
+	const [sortType, setSortType] = useState<SortType | null>(null)
+	const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.ASC)
 
-	const [search, setSearch] = useState<string>('')
+	const [search, setSearch] = useState<string | null>(null)
 	const [excludeAdult, setExcludeAdult] = useState<boolean>(false)
 	const [selectedGenres, setSelectedGenres] = useState<number[]>([])
 	const [minDuration, setMinDuration] = useState<number | null>(null)
 	const [maxDuration, setMaxDuration] = useState<number | null>(null)
-	const [minRating, setMinRating] = useState<number | null>(null)
+	const [minRating, setMinRating] = useState<number | null>(7)
 	const [maxRating, setMaxRating] = useState<number | null>(null)
 	const [startYear, setStartYear] = useState<number | null>(null)
 	const [endYear, setEndYear] = useState<number | null>(null)
-	const [minVotes, setMinVotes] = useState<number | null>(null)
+	const [minVotes, setMinVotes] = useState<number | null>(2000)
 
 	const router = useRouter()
 
@@ -63,70 +78,65 @@ export default function Home() {
 		}
 	};
 
+	const fetchMovies = async () => {
+		setMoviesLoaded(true)
+		try {
+			const queryParams = new URLSearchParams({
+				...(search && search !== '' && { searchQuery: search}),
+				...(selectedGenres.length !== 0 && { genreIds: selectedGenres.join(',')}),
+				...(excludeAdult && { isAdult: 'false'}),
+				...(minDuration && { minDuration: minDuration.toString() }),
+				...(maxDuration && { maxDuration: maxDuration.toString()}),
+				...(minRating && { minRating: minRating.toString()}),
+				...(maxRating && { maxRating: maxRating.toString()}),
+				...(startYear && { startYear: startYear.toString()}),
+				...(endYear && { endYear: endYear.toString()}),
+				...(minVotes && { minVotes: minVotes.toString()}),
+				...(sortType && { sortType: sortType}),
+				...(sortOrder && { sortOrder: sortOrder}),
+				pageSize: ITEMS_PER_PAGE.toString(),
+				page: page.toString()
+			})
+			const queryString = queryParams.toString()
+			const url = queryString ? `api/movies?${queryParams}` : '/api/movies'
+			const res = await fetch(url)
+			const data = await res.json()
+			setMovies(data.movies || [])
+			setTotalPages(data.total_pages)
+		} catch (error) {
+			console.error('Failed to fetch movies:', error)
+		}
+		setMoviesLoaded(false)
+	};
+
 	useEffect(() => {
 		setLoading(true)
 		fetchGenres()
 		fetchUserWatchlist()
+		fetchMovies()
 		setLoading(false)
 	}, [])
 
+	// search
 	useEffect(() => {
-		// Set initial page from URL query or localStorage
-		const urlPage = router.query.page ? parseInt(router.query.page as string) : null;
-		const storedPage = localStorage.getItem('currentPage');
-		
-		if (urlPage) {
-			setPage(urlPage);
-			localStorage.setItem('currentPage', urlPage.toString());
-		} else if (storedPage) {
-			const parsedStoredPage = parseInt(storedPage);
-			if (!isNaN(parsedStoredPage)) {
-				setPage(parsedStoredPage);
-				// Update URL to match stored page
-				router.push({
-					pathname: '/',
-					query: { page: parsedStoredPage }
-				}, undefined, { shallow: true });
-			}
+		if (search != null) {
+			fetchMovies()
 		}
-	}, [router.query.page]);
+	}, [search])
+
+	// sort by
+	useEffect(() => {
+		if (sortType) {
+			fetchMovies()
+		}
+	}, [sortType, sortOrder])
 
 	useEffect(() => {
-		const fetchMovies = async () => {
-			setMoviesLoaded(true)
-			try {
-				const queryParams = new URLSearchParams({
-					...(search !== '' && { searchQuery: search}),
-					...(selectedGenres.length !== 0 && { genreIds: selectedGenres.join(',')}),
-					...(excludeAdult && { isAdult: 'false'}),
-					...(minDuration && { minDuration: minDuration.toString() }),
-					...(maxDuration && { maxDuration: maxDuration.toString()}),
-					...(minRating && { minRating: minRating.toString()}),
-					...(maxRating && { maxRating: maxRating.toString()}),
-					...(startYear && { startYear: startYear.toString()}),
-					...(endYear && { endYear: endYear.toString()}),
-					...(minVotes && { minVotes: minVotes.toString()}),
-					pageSize: ITEMS_PER_PAGE.toString(),
-					page: page.toString()
-				})
-				const queryString = queryParams.toString()
-				const url = queryString ? `api/movies?${queryParams}` : '/api/movies'
-				const res = await fetch(url)
-				const data = await res.json()
-				setMovies(data.movies || [])
-				setTotalPages(data.total_pages)
-			} catch (error) {
-				console.error('Failed to fetch movies:', error)
-			}
-			setMoviesLoaded(false)
-		}
-
 		fetchMovies()
-	}, [minDuration, maxDuration, startYear, endYear, minRating, maxRating, selectedGenres, search, excludeAdult, minVotes, page])
+	}, [page])
 	
 	const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
 		setPage(value);
-		localStorage.setItem('currentPage', value.toString());
 		router.push({
 			pathname: '/',
 			query: { page: value }
@@ -170,7 +180,6 @@ export default function Home() {
 	const handleSearchChange = (value: string) => {
 		setSearch(value)
 		setPage(1)
-		localStorage.setItem('currentPage', '1')
 		router.push({
 			pathname: '/',
 			query: { page: 1 }
@@ -180,12 +189,31 @@ export default function Home() {
 	const handleFilterChange = (setter: (value: any) => void, value: any) => {
 		setter(value)
 		setPage(1)
-		localStorage.setItem('currentPage', '1')
 		router.push({
 			pathname: '/',
 			query: { page: 1 }
 		}, undefined, { shallow: true })
 	}
+
+	const handleSortTypeChange = (event: any) => {
+		setSortType(event.target.value);
+		setPage(1);
+		router.push({
+			pathname: '/',
+			query: { page: 1 }
+		}, undefined, { shallow: true });
+	};
+
+	const handleSortOrderChange = () => {
+		setSortOrder(prevOrder => 
+			prevOrder === SortOrder.ASC ? SortOrder.DESC : SortOrder.ASC
+		);
+		setPage(1);
+		router.push({
+			pathname: '/',
+			query: { page: 1 }
+		}, undefined, { shallow: true });
+	};
 
 	return (
 		<div className="container p-1 text-black dark:text-white min-w-full">
@@ -208,12 +236,57 @@ export default function Home() {
 						setExcludeAdult={(value) => handleFilterChange(setExcludeAdult, value)}
 						setMinVotes={(value) => handleFilterChange(setMinVotes, value)}
 					/>
+					<div className="flex justify-between mt-4">
+						<Button
+							variant="contained"
+							className="bg-gray-500 hover:bg-gray-400 text-white"
+							onClick={() => router.reload()}
+						>
+							Reset
+						</Button>
+						<Button
+							variant="contained"
+							className="bg-[#FFB800] hover:bg-[#FFA500] text-white"
+							onClick={() => fetchMovies()}
+						>
+							Filter
+						</Button>
+					</div>
 				</div>
 				<div className="w-full p-4 overflow-y-auto">
 					{moviesLoaded || loading ? (
 						<p>Loading...</p>
 					) : (
 						<>
+							<div className="flex justify-end mb-6 items-center gap-2">
+								<FormControl size="small" className="min-w-[200px]">
+									<InputLabel id="sort-select-label">Sort by</InputLabel>
+									<Select
+										labelId="sort-select-label"
+										id="sort-select"
+										value={sortType}
+										label="Sort by"
+										onChange={handleSortTypeChange}
+									>
+										{sortOptions.map((option) => (
+											<MenuItem key={option.value} value={option.value}>
+												{option.label}
+											</MenuItem>
+										))}
+									</Select>
+								</FormControl>
+								<IconButton 
+									onClick={handleSortOrderChange}
+									size="small"
+									className="bg-gray-100 hover:bg-gray-200"
+								>
+									{sortOrder === SortOrder.ASC ? (
+										<ArrowUpward/>
+									) : (
+										<ArrowDownward/>
+									)}
+								</IconButton>
+							</div>
 							<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-12 place-items-center">
 								{movies.map((movie) => (
 									<MovieCard
@@ -226,7 +299,6 @@ export default function Home() {
 										imdb_votes={movie.imdb_votes}
 										isInWatchlist={watchlist.includes(movie.id)}
 										onWatchlistToggle={handleWatchlistToggle}
-										currentPage={page}
 									/>
 								))}
 							</div>

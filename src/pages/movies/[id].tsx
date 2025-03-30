@@ -286,20 +286,7 @@ const MovieDetails = () => {
     };
 
     const handleBack = () => {
-        const currentPage = localStorage.getItem('currentPage');
-        if (currentPage) {
-            const parsedPage = parseInt(currentPage);
-            if (!isNaN(parsedPage)) {
-                router.push({
-                    pathname: '/',
-                    query: { page: parsedPage }
-                }, undefined, { shallow: true });
-            } else {
-                router.push('/');
-            }
-        } else {
-            router.push('/');
-        }
+        router.push('/');
     };
 
     if (loading) {

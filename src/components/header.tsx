@@ -1,4 +1,5 @@
-import { AppBar, Toolbar, Button, TextField } from '@mui/material'
+import { AppBar, Toolbar, Button, TextField, InputAdornment, IconButton } from '@mui/material'
+import SearchIcon from '@mui/icons-material/Search'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
@@ -54,24 +55,40 @@ export default function Header(headerprops: HeaderProps) {
 						</Link>
 					</div>
 					<TextField
-						className="bg-white rounded-md"
-						placeholder="Search Movies"
-						size="small"
-						sx={{ width: '50%' }}
-						value={search}
-						onChange={(e) => { 
-							headerprops.setSearch(e.target.value)
-							setLocalSearch(e.target.value)
-						}}
+					className="bg-white rounded-md"
+					placeholder="Search Movies"
+					size="small"
+					sx={{ width: "35%" }}
+					value={search}
+					onChange={(e) => setLocalSearch(e.target.value)}
+					onKeyDown={(e) => { // for the enter key
+						if (e.key === "Enter") {
+						  headerprops.setSearch(search);
+						}
+					}}
+					InputProps={{
+						endAdornment: (
+						<InputAdornment position="end">
+							<IconButton
+								onClick={() => headerprops.setSearch(search)}
+								edge="end"
+								className="text-black"
+							>
+							<SearchIcon />
+							</IconButton>
+						</InputAdornment>
+						),
+					}}
 					/>
-					{/* { <div className="flex items-center space-x-2">
-						<Button 
-							className="text-white dark:text-white border-gray-300 dark:border-gray-700 hover:bg-gray-800 dark:hover:bg-gray-700 rounded-xl"
-							onClick={() => router.push('/auth')}>
-                    	Log in
-						</Button>
-					</div> */}
 					<div className="flex items-center space-x-2">
+						{/* Top 10 Movies Button */}
+						<Button
+							className="text-white border-gray-300 hover:bg-gray-800 rounded-xl flex items-center"
+							onClick={() => router.push('/topten')}
+							disabled={loading}
+							>
+							⭐ {loading ? "Loading..." : "Top 10"}
+						</Button>
 						{/* Random Movie Button */}
 						<Button
 							className="text-white border-gray-300 hover:bg-gray-800 rounded-xl flex items-center"
