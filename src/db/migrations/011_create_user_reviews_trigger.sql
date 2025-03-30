@@ -26,6 +26,15 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER update_user_ratings_trigger
-AFTER INSERT OR UPDATE OR DELETE ON user_reviews
-FOR EACH ROW EXECUTE FUNCTION update_user_ratings();
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_trigger 
+        WHERE tgname = 'update_user_ratings_trigger'
+    ) THEN
+        CREATE TRIGGER update_user_ratings_trigger
+        AFTER INSERT OR UPDATE OR DELETE ON user_reviews
+        FOR EACH ROW 
+        EXECUTE FUNCTION update_user_ratings();
+    END IF;
+END $$;
