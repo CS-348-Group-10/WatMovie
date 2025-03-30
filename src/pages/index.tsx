@@ -3,7 +3,7 @@ import Filters from '../components/filters'
 import Header from '../components/header'
 import MovieCard from '../components/movieCard'
 import { Movie, SortType, SortOrder } from '../types'
-import { Box, Pagination, FormControl, Select, InputLabel, MenuItem, IconButton } from "@mui/material";
+import { Box, Pagination, FormControl, Select, InputLabel, MenuItem, IconButton, Button } from "@mui/material";
 import { ArrowUpward, ArrowDownward } from '@mui/icons-material';
 import { useRouter } from 'next/router';
 
@@ -29,20 +29,19 @@ export default function Home() {
 	const [page, setPage] = useState(1)
 	const [totalPages, setTotalPages] = useState<number | null>(null)
 	const [watchlist, setWatchlist] = useState<string[]>([])
-	const [sortType, setSortType] = useState<SortType>(SortType.TITLE)
+	const [sortType, setSortType] = useState<SortType | null>(null)
 	const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.ASC)
 
 	const [search, setSearch] = useState<string | null>(null)
-	const [filtersList, setFiltersList] = useState<boolean>(false)
 	const [excludeAdult, setExcludeAdult] = useState<boolean>(false)
 	const [selectedGenres, setSelectedGenres] = useState<number[]>([])
 	const [minDuration, setMinDuration] = useState<number | null>(null)
 	const [maxDuration, setMaxDuration] = useState<number | null>(null)
-	const [minRating, setMinRating] = useState<number | null>(null)
+	const [minRating, setMinRating] = useState<number | null>(7)
 	const [maxRating, setMaxRating] = useState<number | null>(null)
 	const [startYear, setStartYear] = useState<number | null>(null)
 	const [endYear, setEndYear] = useState<number | null>(null)
-	const [minVotes, setMinVotes] = useState<number | null>(null)
+	const [minVotes, setMinVotes] = useState<number | null>(2000)
 
 	const router = useRouter()
 
@@ -93,6 +92,8 @@ export default function Home() {
 				...(startYear && { startYear: startYear.toString()}),
 				...(endYear && { endYear: endYear.toString()}),
 				...(minVotes && { minVotes: minVotes.toString()}),
+				...(sortType && { sortType: sortType}),
+				...(sortOrder && { sortOrder: sortOrder}),
 				pageSize: ITEMS_PER_PAGE.toString(),
 				page: page.toString()
 			})
@@ -144,13 +145,12 @@ export default function Home() {
 		}
 	}, [search])
 
-	// filters
+	// sort by
 	useEffect(() => {
-		if (filtersList) {
+		if (sortType) {
 			fetchMovies()
-			setFiltersList(false)
 		}
-	}, [filtersList])
+	}, [sortType, sortOrder])
 	
 	const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
 		setPage(value);
@@ -269,7 +269,7 @@ export default function Home() {
 						<Button
 							variant="contained"
 							className="bg-[#FFB800] hover:bg-[#FFA500] text-white"
-							onClick={() => setFiltersList(true)}
+							onClick={() => fetchMovies()}
 						>
 							Filter
 						</Button>
