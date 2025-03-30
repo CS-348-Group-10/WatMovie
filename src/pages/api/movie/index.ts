@@ -14,10 +14,10 @@ export default async function handler(
 	const { id } = req.query
 
 	// Check if the id is a string and matches the format tt\d{7}
-	if (typeof id !== 'string' || !/^tt\d{7}$/.test(id)) {
-		res.status(400).json({ message: 'Invalid movie ID' })
-		return
-	}
+	// if (typeof id !== 'string' || !/^tt\d{7}$/.test(id)) {
+	// 	res.status(400).json({ message: 'Invalid movie ID' })
+	// 	return
+	// }
 
 	try {
 		const { rows } = await pool.query(

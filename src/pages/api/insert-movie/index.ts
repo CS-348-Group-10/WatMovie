@@ -47,24 +47,23 @@ export default async function handler(
                 movie.total_votes
             ]
         )
-        // for (let i = 0; i < movie.cast.length; i++) {
-        //     await pool.query(insertMovieCastQuery, 
-        //         [
-        //             movie.id,
-        //             movie.cast[i].ordering,
-        //             movie.cast[i].id,
-        //             movie.cast[i].role_id,
-        //             movie.cast[i].job,
-        //             movie.cast[i].characters
-        //         ]
-        //     )
-        // }
+        for (let i = 0; i < movie.cast.length; i++) {
+            await pool.query(insertMovieCastQuery, 
+                [
+                    movie.id,
+                    movie.cast[i].ordering,
+                    movie.cast[i].pid,
+                    movie.cast[i].rid,
+                    movie.cast[i].job,
+                    movie.cast[i].characters
+                ]
+            )
+        }
         await pool.query('COMMIT')
         res.status(200).json({ message: 'Movie inserted successfully' })
-    } catch (err) {
+    } catch (error) {
         await pool.query('ROLLBACK')
-        console.error(err)
-        res.status(500).json({ message: 'Something went wrong' })
+        console.error('Error inserting movie:', error)
+        res.status(500).json({ message: 'Failed to insert movie' })
     }
-
 }

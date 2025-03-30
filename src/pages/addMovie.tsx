@@ -16,18 +16,27 @@ import {
     Card,
     CardContent,
     IconButton,
-    Tooltip
+    Tooltip,
+    Stack
 } from '@mui/material';
 import { useForm, Controller } from "react-hook-form";
 import Image from 'next/image';
-import { Genre } from '@/types';
+import { Genre, MovieRole } from '@/types';
 import { useRouter } from 'next/router';
 import MovieIcon from '@mui/icons-material/Movie';
 import InfoIcon from '@mui/icons-material/Info';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 interface AlertState {
     message: string;
     severity: 'success' | 'error' | 'warning' | 'info';
+}
+
+interface CastMember {
+    professional: { id: string; name: string } | null;
+    role: { id: string; name: string } | null;
+    characters: string;
 }
 
 interface MovieFormData {
@@ -38,14 +47,17 @@ interface MovieFormData {
     totalVotes: string;
     sumVotes: string;
     genres: Genre[];
+    cast: CastMember[];
 }
 
-const steps = ['Basic Info', 'Details', 'Genres'];
+const steps = ['Basic Info', 'Details', 'Genres', 'Cast'];
 
 export default function AddMovie() {
     const router = useRouter();
     const [activeStep, setActiveStep] = useState(0);
     const [genres, setGenres] = useState<Genre[]>([]);
+    const [professionals, setProfessionals] = useState<{ id: string; name: string }[]>([]);
+    const [roles, setRoles] = useState<MovieRole[]>([]);
     const [alert, setAlert] = useState<AlertState | null>(null);
     const [loading, setLoading] = useState(false);
 
@@ -65,7 +77,8 @@ export default function AddMovie() {
             duration: '',
             totalVotes: '',
             sumVotes: '',
-            genres: []
+            genres: [],
+            cast: [{ professional: null, role: null, characters: '' }]
         }
     });
 
@@ -77,6 +90,18 @@ export default function AddMovie() {
                 if (!genresRes.ok) throw new Error('Failed to fetch genres');
                 const genresData = await genresRes.json();
                 setGenres(genresData);
+
+                // Fetch professionals
+                const professionalsRes = await fetch('/api/movie-professionals');
+                if (!professionalsRes.ok) throw new Error('Failed to fetch professionals');
+                const professionalsData = await professionalsRes.json();
+                setProfessionals(professionalsData);
+
+                // Fetch roles
+                const rolesRes = await fetch('/api/movie-roles');
+                if (!rolesRes.ok) throw new Error('Failed to fetch roles');
+                const rolesData = await rolesRes.json();
+                setRoles(rolesData);
             } catch (error) {
                 console.error('Failed to fetch data:', error);
                 setAlert({
@@ -97,6 +122,17 @@ export default function AddMovie() {
         setActiveStep((prev) => prev - 1);
     };
 
+    const addCastMember = () => {
+        const currentCast = getValues('cast');
+        const newCast = [...currentCast, { professional: null, role: null, characters: '' }];
+        setValue('cast', newCast, { shouldValidate: true });
+    };
+
+    const removeCastMember = (index: number) => {
+        const currentCast = getValues('cast');
+        setValue('cast', currentCast.filter((_, i) => i !== index));
+    };
+
     const onSubmit = async (data: MovieFormData) => {
         setLoading(true);
         setAlert(null);
@@ -109,7 +145,14 @@ export default function AddMovie() {
             duration: data.duration ? Number(data.duration) : null,
             total_votes: data.totalVotes ? Number(data.totalVotes) : 0,
             sum_of_votes: data.sumVotes ? Number(data.sumVotes) : 0,
-            genre_ids: data.genres?.map(genre => genre.id) || []
+            genre_ids: data.genres?.map(genre => genre.id) || [],
+            cast: data.cast.map((member, index) => ({
+                ordering: index + 1,
+                pid: member.professional?.id || '',
+                rid: member.role?.id || '',
+                job: null,
+                characters: member.characters
+            }))
         };
 
         // Validate numeric fields
@@ -279,6 +322,102 @@ export default function AddMovie() {
                         />
                     </Box>
                 );
+            case 3:
+                return (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        <Stack spacing={3}>
+                            {watch('cast').map((member, index) => (
+                                <Card key={index} className="p-4">
+                                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                                        <Box sx={{ flex: 1 }}>
+                                            <Controller
+                                                name={`cast.${index}.professional`}
+                                                control={control}
+                                                rules={{ required: "Please select a professional" }}
+                                                render={({ field: { onChange, value }, fieldState: { error } }) => (
+                                                    <Autocomplete<{ id: string; name: string } | null>
+                                                        options={professionals}
+                                                        value={value || null}
+                                                        onChange={(_, newValue) => {
+                                                            onChange(newValue);
+                                                            const newCast = [...watch('cast')];
+                                                            newCast[index] = { ...newCast[index], professional: newValue };
+                                                            setValue("cast", newCast);
+                                                        }}
+                                                        getOptionLabel={(option) => option?.name || ''}
+                                                        renderInput={(params) => (
+                                                            <TextField 
+                                                                {...params} 
+                                                                label="Professional" 
+                                                                error={!!error}
+                                                                helperText={error?.message}
+                                                                fullWidth 
+                                                            />
+                                                        )}
+                                                    />
+                                                )}
+                                            />
+                                        </Box>
+                                        <Box sx={{ flex: 1 }}>
+                                            <Controller
+                                                name={`cast.${index}.role`}
+                                                control={control}
+                                                rules={{ required: "Please select a role" }}
+                                                render={({ field: { onChange, value }, fieldState: { error } }) => (
+                                                    <Autocomplete<{ id: string; name: string } | null>
+                                                        options={roles}
+                                                        value={value || null}
+                                                        onChange={(_, newValue) => {
+                                                            onChange(newValue);
+                                                            const newCast = [...watch('cast')];
+                                                            newCast[index] = { ...newCast[index], role: newValue };
+                                                            setValue("cast", newCast);
+                                                        }}
+                                                        getOptionLabel={(option) => option?.name || ''}
+                                                        renderInput={(params) => (
+                                                            <TextField 
+                                                                {...params} 
+                                                                label="Role" 
+                                                                error={!!error}
+                                                                helperText={error?.message}
+                                                                fullWidth 
+                                                            />
+                                                        )}
+                                                    />
+                                                )}
+                                            />
+                                        </Box>
+                                        <Box sx={{ flex: 1 }}>
+                                            <TextField
+                                                label="Characters"
+                                                {...register(`cast.${index}.characters`)}
+                                                fullWidth
+                                            />
+                                        </Box>
+                                        <IconButton 
+                                            onClick={() => removeCastMember(index)}
+                                            color="error"
+                                            disabled={watch('cast').length === 1}
+                                        >
+                                            <DeleteIcon />
+                                        </IconButton>
+                                    </Box>
+                                </Card>
+                            ))}
+                            <Button
+                                startIcon={<AddIcon />}
+                                onClick={() => {
+                                    const currentCast = watch('cast');
+                                    setValue('cast', [...currentCast, { professional: null, role: null, characters: '' }], { shouldValidate: true });
+                                }}
+                                variant="outlined"
+                                className="mt-2"
+                            >
+                                Add Cast Member
+                            </Button>
+                        </Stack>
+                    </Box>
+                );
             default:
                 return null;
         }
@@ -305,7 +444,7 @@ export default function AddMovie() {
                 </Box>
 
                 <Box className="flex justify-center">
-                    <Card className="w-full max-w-[600px] shadow-lg">
+                    <Card className="w-full max-w-[800px] shadow-lg">
                         <CardContent className="p-6">
                             <Stepper activeStep={activeStep} className="mb-8">
                                 {steps.map((label) => (
