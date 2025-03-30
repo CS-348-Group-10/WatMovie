@@ -2,11 +2,24 @@ import { useEffect, useState } from 'react'
 import Filters from '../components/filters'
 import Header from '../components/header'
 import MovieCard from '../components/movieCard'
-import { Movie } from '../types'
-import { Box, Pagination, Button } from "@mui/material";
+import { Movie, SortType, SortOrder } from '../types'
+import { Box, Pagination, FormControl, Select, InputLabel, MenuItem, IconButton } from "@mui/material";
+import { ArrowUpward, ArrowDownward } from '@mui/icons-material';
 import { useRouter } from 'next/router';
 
 const ITEMS_PER_PAGE = 12; // Number of movies to show per page
+
+type SortOption = {
+	value: string;
+	label: string;
+}
+
+const sortOptions: SortOption[] = [
+	{ value: SortType.TITLE, label: 'Title (A - Z)' },
+	{ value: SortType.IMDB_RATING, label: 'IMDb Rating' },
+	{ value: SortType.YEAR, label: 'Year' },
+	{ value: SortType.RUNTIME, label: 'Runtime' }
+];
 
 export default function Home() {
 	const [genresMap, setGenresMap] = useState(new Map<number, string>())
@@ -16,6 +29,8 @@ export default function Home() {
 	const [page, setPage] = useState(1)
 	const [totalPages, setTotalPages] = useState<number | null>(null)
 	const [watchlist, setWatchlist] = useState<string[]>([])
+	const [sortType, setSortType] = useState<SortType>(SortType.TITLE)
+	const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.ASC)
 
 	const [search, setSearch] = useState<string | null>(null)
 	const [filtersList, setFiltersList] = useState<boolean>(false)
@@ -200,6 +215,28 @@ export default function Home() {
 		}, undefined, { shallow: true })
 	}
 
+	const handleSortTypeChange = (event: any) => {
+		setSortType(event.target.value);
+		setPage(1);
+		localStorage.setItem('currentPage', '1');
+		router.push({
+			pathname: '/',
+			query: { page: 1 }
+		}, undefined, { shallow: true });
+	};
+
+	const handleSortOrderChange = () => {
+		setSortOrder(prevOrder => 
+			prevOrder === SortOrder.ASC ? SortOrder.DESC : SortOrder.ASC
+		);
+		setPage(1);
+		localStorage.setItem('currentPage', '1');
+		router.push({
+			pathname: '/',
+			query: { page: 1 }
+		}, undefined, { shallow: true });
+	};
+
 	return (
 		<div className="container p-1 text-black dark:text-white min-w-full">
 			<div className="fixed top-0 left-0 w-full bg-white shadow-md z-50">
@@ -243,6 +280,35 @@ export default function Home() {
 						<p>Loading...</p>
 					) : (
 						<>
+							<div className="flex justify-end mb-6 items-center gap-2">
+								<FormControl size="small" className="min-w-[200px]">
+									<InputLabel id="sort-select-label">Sort by</InputLabel>
+									<Select
+										labelId="sort-select-label"
+										id="sort-select"
+										value={sortType}
+										label="Sort by"
+										onChange={handleSortTypeChange}
+									>
+										{sortOptions.map((option) => (
+											<MenuItem key={option.value} value={option.value}>
+												{option.label}
+											</MenuItem>
+										))}
+									</Select>
+								</FormControl>
+								<IconButton 
+									onClick={handleSortOrderChange}
+									size="small"
+									className="bg-gray-100 hover:bg-gray-200"
+								>
+									{sortOrder === SortOrder.ASC ? (
+										<ArrowUpward/>
+									) : (
+										<ArrowDownward/>
+									)}
+								</IconButton>
+							</div>
 							<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-12 place-items-center">
 								{movies.map((movie) => (
 									<MovieCard
