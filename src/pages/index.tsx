@@ -198,7 +198,6 @@ export default function Home() {
 	const handleSortTypeChange = (event: any) => {
 		setSortType(event.target.value);
 		setPage(1);
-		localStorage.setItem('currentPage', '1');
 		router.push({
 			pathname: '/',
 			query: { page: 1 }
@@ -210,7 +209,6 @@ export default function Home() {
 			prevOrder === SortOrder.ASC ? SortOrder.DESC : SortOrder.ASC
 		);
 		setPage(1);
-		localStorage.setItem('currentPage', '1');
 		router.push({
 			pathname: '/',
 			query: { page: 1 }
