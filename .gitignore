@@ -42,3 +42,4 @@ next-env.d.ts
 
 # ignore tsv dataset files
 public/*.tsv
+public/*.csv
