@@ -89,6 +89,13 @@ export default function Header(headerprops: HeaderProps) {
 							>
 							⭐ {loading ? "Loading..." : "Top 10"}
 						</Button>
+						{/* Add Movie Button */}
+						<Button
+							className="text-white border-gray-300 hover:bg-gray-800 rounded-xl flex items-center"
+							onClick={() => router.push('/addMovie')}
+						>
+							🎬 Add Movie
+						</Button>
 						{/* Random Movie Button */}
 						<Button
 							className="text-white border-gray-300 hover:bg-gray-800 rounded-xl flex items-center"
