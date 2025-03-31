@@ -1,0 +1,1 @@
+SELECT uid FROM users WHERE email = 'kayla.mcdonald0@example.com' AND password = '5ZxT#5wZi*55';
