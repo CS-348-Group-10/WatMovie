@@ -1,0 +1,3 @@
+| mid       | name                    | is_adult | release_year | runtime_minutes | user_rating_sum | user_rating_count |
+| --------- | ----------------------- | -------- | ------------ | --------------- | --------------- | ----------------- |
+| tt0124289 | Bag Københavns kulisser | false    | 1935         | null            | 0               | 0                 |

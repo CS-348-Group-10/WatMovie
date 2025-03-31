@@ -1,0 +1,4 @@
+| id        | movie           | is_adult | release_year | duration | rating | votes | genre_ids |
+| --------- | --------------- | -------- | ------------ | -------- | ------ | ----- | --------- |
+| tt2990738 | The Terror Live | false    | 2013         | 97       | 7.1    | 8400  | [18,14,8] |
+| tt9851854 | Major           | false    | 2022         | 150      | 8.1    | 33295 | [18,11,8] |
