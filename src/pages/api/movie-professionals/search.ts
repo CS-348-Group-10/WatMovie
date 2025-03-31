@@ -21,11 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
              LIMIT 10`,
             [`%${name}%`]
         );
-
-        if (result.rows.length === 0) {
-            return res.status(404).json({ message: 'No professionals found' });
-        }
-
+        
         return res.status(200).json(result.rows);
     } catch (error) {
         console.error('Error searching professionals:', error);
