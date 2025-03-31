@@ -22,6 +22,8 @@ BEGIN
         WHERE mid = OLD.mid;
     END IF;
 
+    REFRESH MATERIALIZED VIEW top_ten_movies;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
