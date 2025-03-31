@@ -242,9 +242,7 @@ export default function AddMovie() {
         // Check if any professional is not properly searched
         for (let i = 0; i < data.cast.length; i++) {
             const member = data.cast[i];
-            console.log(member.professional);
             debouncedSearch(member.professional?.name || '');
-            console.log(member.professional?.name, member.professional?.id);
         }
 
         setLoading(true);

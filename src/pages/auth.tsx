@@ -117,7 +117,6 @@ export default function Auth() {
         })
       });
       const data = await response.json();
-      console.log(response);
 
       if (!response.ok) {
         setError(data.message || 'Failed to create account. Please try again.');

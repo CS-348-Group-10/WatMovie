@@ -16,7 +16,6 @@ export default async function handler(
     }
 
     const movie = req.body
-    console.log(movie)
 
     try {
         await pool.query('BEGIN')
