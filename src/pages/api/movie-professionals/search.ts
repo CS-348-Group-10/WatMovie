@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import pool from '@/db';
+import { searchMovieProfessionalQuery } from '@/db/queries/movieProfessionals/searchMovieProfessional';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'GET') {
@@ -14,11 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
         const result = await pool.query(
-            `SELECT pid, primary_name 
-             FROM movie_professionals 
-             WHERE LOWER(primary_name) LIKE LOWER($1)
-             ORDER BY primary_name
-             LIMIT 10`,
+            searchMovieProfessionalQuery,
             [`%${name}%`]
         );
         
