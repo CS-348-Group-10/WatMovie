@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import pool from '@/db'
-import { buildGetMoviesByPageQuery } from '@/db/queries/movies/getMoviesByPage'
+import { getMoviesByPageQuery } from '@/db/queries/movies/getMoviesByPage'
 import { SortOrder, SortType } from '@/types'
 import { buildGetMovieCountQuery } from '@/db/queries/movies/getMovieCount'
 
@@ -96,9 +96,11 @@ export default async function handler(
 		] = await Promise.all([
 			pool.query(buildGetMovieCountQuery(sanitizedSortType), baseParams),
 			pool.query(
-				buildGetMoviesByPageQuery(sanitizedSortType, sanitizedSortOrder),
+				getMoviesByPageQuery(),
 				[
 					...baseParams,
+					sanitizedSortType,
+					sanitizedSortOrder,
 					sanitizedPageSize, 
 					sanitizedPage ? (sanitizedPage - 1) * sanitizedPageSize : 0
 				]

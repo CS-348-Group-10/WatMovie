@@ -1,5 +1,17 @@
 import { SortType } from "@/types"
-import { getSortingNotNullCondition } from "./getMoviesByPage"
+
+const getSortingNotNullCondition = (sortBy: SortType | null) => {
+	switch (sortBy) {
+	case SortType.IMDB_RATING:
+		return 'AND MR.sum_of_votes IS NOT NULL AND MR.total_votes IS NOT NULL'
+    case SortType.USER_RATING:
+        return 'AND M.user_rating_count <> 0'
+	case SortType.RUNTIME:
+		return 'AND M.runtime_minutes IS NOT NULL'
+	default:
+		return ''
+	}
+}
 
 export const buildGetMovieCountQuery = (sortBy: SortType | null) => `
 SELECT 

@@ -3,7 +3,7 @@ import Filters from '../components/filters'
 import Header from '../components/header'
 import MovieCard from '../components/movieCard'
 import { Movie, SortType, SortOrder } from '../types'
-import { Box, Pagination, FormControl, Select, InputLabel, MenuItem, IconButton, Button } from "@mui/material";
+import { Box, Pagination, FormControl, Select, InputLabel, MenuItem, IconButton, Button, CircularProgress } from "@mui/material";
 import { ArrowUpward, ArrowDownward } from '@mui/icons-material';
 import { useRouter } from 'next/router';
 
@@ -255,7 +255,9 @@ export default function Home() {
 				</div>
 				<div className="w-full p-4 overflow-y-auto">
 					{moviesLoaded || loading ? (
-						<p>Loading...</p>
+						<Box className="flex justify-center items-center h-screen bg-gray-50">
+							<CircularProgress className="text-[#FFB800]" />
+						</Box>
 					) : (
 						<>
 							<div className="flex justify-end mb-6 items-center gap-2">
