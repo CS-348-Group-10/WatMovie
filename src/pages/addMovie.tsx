@@ -112,7 +112,7 @@ export default function AddMovie() {
     // Debounced search function
     const debouncedSearch = useCallback(
         debounce(async (query: string) => {
-            if (!query.trim()) {
+            if (query.trim() === '') {
                 setProfessionalOptions([]);
                 return;
             }
@@ -120,11 +120,10 @@ export default function AddMovie() {
             setSearchingProfessional(true);
             try {
                 const response = await fetch(`/api/movie-professionals/search?name=${encodeURIComponent(query)}`);
-                if (!response.ok) throw new Error('Failed to fetch professionals');
                 const data = await response.json();
                 setProfessionalOptions(data.map((p: any) => ({
-                    id: p.pid,
-                    name: p.primary_name
+                    id: p.id,
+                    name: p.name
                 })));
             } catch (error) {
                 console.error('Error searching professionals:', error);

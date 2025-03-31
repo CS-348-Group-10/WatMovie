@@ -18,8 +18,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             searchMovieProfessionalQuery,
             [`%${name}%`]
         );
+
+        const data = result.rows.map((row) => ({
+            id: row.pid,
+            name: row.primary_name
+        }));
         
-        return res.status(200).json(result.rows);
+        return res.status(200).json(data);
     } catch (error) {
         console.error('Error searching professionals:', error);
         return res.status(500).json({ message: 'Internal server error' });

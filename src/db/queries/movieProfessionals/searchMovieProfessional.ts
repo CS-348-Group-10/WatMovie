@@ -1,6 +1,6 @@
 export const searchMovieProfessionalQuery = 
 `
-SELECT (pid, primary_name) 
+SELECT *
 FROM movie_professionals
 WHERE LOWER(primary_name) LIKE LOWER($1)
 ORDER BY primary_name
