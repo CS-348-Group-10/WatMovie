@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
     Box, 
     Button, 
@@ -56,10 +56,11 @@ export default function AddMovie() {
     const router = useRouter();
     const [activeStep, setActiveStep] = useState(0);
     const [genres, setGenres] = useState<Genre[]>([]);
-    const [professionals, setProfessionals] = useState<{ id: string; name: string }[]>([]);
     const [roles, setRoles] = useState<MovieRole[]>([]);
     const [alert, setAlert] = useState<AlertState | null>(null);
     const [loading, setLoading] = useState(false);
+    const [searchingProfessional, setSearchingProfessional] = useState(false);
+    const [professionalOptions, setProfessionalOptions] = useState<{ id: string; name: string }[]>([]);
 
     const { 
         handleSubmit, 
@@ -91,12 +92,6 @@ export default function AddMovie() {
                 const genresData = await genresRes.json();
                 setGenres(genresData);
 
-                // Fetch professionals
-                const professionalsRes = await fetch('/api/movie-professionals');
-                if (!professionalsRes.ok) throw new Error('Failed to fetch professionals');
-                const professionalsData = await professionalsRes.json();
-                setProfessionals(professionalsData);
-
                 // Fetch roles
                 const rolesRes = await fetch('/api/movie-roles');
                 if (!rolesRes.ok) throw new Error('Failed to fetch roles');
@@ -114,7 +109,117 @@ export default function AddMovie() {
         fetchData();
     }, []);
 
-    const handleNext = () => {
+    // Debounced search function
+    const debouncedSearch = useCallback(
+        debounce(async (query: string) => {
+            if (!query.trim()) {
+                setProfessionalOptions([]);
+                return;
+            }
+
+            setSearchingProfessional(true);
+            try {
+                const response = await fetch(`/api/movie-professionals/search?name=${encodeURIComponent(query)}`);
+                if (!response.ok) throw new Error('Failed to fetch professionals');
+                const data = await response.json();
+                setProfessionalOptions(data.map((p: any) => ({
+                    id: p.pid,
+                    name: p.primary_name
+                })));
+            } catch (error) {
+                console.error('Error searching professionals:', error);
+                setProfessionalOptions([]);
+            } finally {
+                setSearchingProfessional(false);
+            }
+        }, 100),
+        []
+    );
+
+    // Cleanup debounce on unmount
+    useEffect(() => {
+        return () => {
+            debouncedSearch.cancel();
+        };
+    }, [debouncedSearch]);
+
+    const handleNext = async () => {
+        let isValid = true;
+        let errorMessage = '';
+
+        switch (activeStep) {
+            case 0: // Basic Info
+                const movieName = getValues('movieName');
+                const releaseYear = getValues('releaseYear');
+                
+                if (!movieName) {
+                    errorMessage = 'Movie name is required';
+                    isValid = false;
+                } else if (movieName.length < 2) {
+                    errorMessage = 'Movie name must be at least 2 characters';
+                    isValid = false;
+                } else if (!releaseYear) {
+                    errorMessage = 'Release year is required';
+                    isValid = false;
+                } else {
+                    const year = Number(releaseYear);
+                    if (isNaN(year) || year < 1888 || year > new Date().getFullYear()) {
+                        errorMessage = 'Please enter a valid release year between 1888 and current year';
+                        isValid = false;
+                    }
+                }
+                break;
+
+            case 1: // Details
+                const totalVotes = getValues('totalVotes');
+                const sumVotes = getValues('sumVotes');
+                
+                if (!totalVotes) {
+                    errorMessage = 'Total votes is required';
+                    isValid = false;
+                } else if (!sumVotes) {
+                    errorMessage = 'Sum of votes is required';
+                    isValid = false;
+                } else {
+                    const total = Number(totalVotes);
+                    const sum = Number(sumVotes);
+                    
+                    if (isNaN(total) || total < 0) {
+                        errorMessage = 'Total votes must be a valid positive number';
+                        isValid = false;
+                    } else if (isNaN(sum) || sum < 0) {
+                        errorMessage = 'Sum of votes must be a valid positive number';
+                        isValid = false;
+                    } else if (total === 0) {
+                        errorMessage = 'Total votes must be greater than 0';
+                        isValid = false;
+                    } else {
+                        const ratio = sum / total;
+                        if (ratio < 1 || ratio > 10) {
+                            errorMessage = 'Average rating must be between 1 and 10';
+                            isValid = false;
+                        }
+                    }
+                }
+                break;
+
+            case 2: // Genres
+                const genres = getValues('genres');
+                if (!genres || genres.length === 0) {
+                    errorMessage = 'Please select at least one genre';
+                    isValid = false;
+                }
+                break;
+        }
+
+        if (!isValid) {
+            setAlert({
+                message: errorMessage,
+                severity: 'error'
+            });
+            return;
+        }
+
         setActiveStep((prev) => prev + 1);
     };
 
@@ -134,6 +239,14 @@ export default function AddMovie() {
     };
 
     const onSubmit = async (data: MovieFormData) => {
+        // Check if any professional is not properly searched
+        for (let i = 0; i < data.cast.length; i++) {
+            const member = data.cast[i];
+            console.log(member.professional);
+            debouncedSearch(member.professional?.name || '');
+            console.log(member.professional?.name, member.professional?.id);
+        }
+
         setLoading(true);
         setAlert(null);
 
@@ -259,6 +372,7 @@ export default function AddMovie() {
                             label="Total Votes" 
                             type="number" 
                             {...register("totalVotes", {
+                                required: "Total votes is required",
                                 min: { value: 0, message: "Total votes cannot be negative" }
                             })}
                             error={!!errors.totalVotes}
@@ -270,11 +384,21 @@ export default function AddMovie() {
                             label="Sum of Votes" 
                             type="number" 
                             {...register("sumVotes", {
+                                required: "Sum of votes is required",
                                 min: { value: 0, message: "Sum of votes cannot be negative" },
-                                validate: value => {
-                                    if (value === '') return true;
+                                validate: (value, formValues) => {
+                                    if (value === '') return "Sum of votes is required";
                                     const num = Number(value);
-                                    return !isNaN(num) || 'Please enter a valid number';
+                                    if (isNaN(num)) return 'Please enter a valid number';
+                                    
+                                    const totalVotes = Number(formValues.totalVotes);
+                                    if (totalVotes === 0) return 'Total votes must be greater than 0';
+                                    
+                                    const ratio = num / totalVotes;
+                                    if (ratio < 1 || ratio > 10) {
+                                        return 'Average rating must be between 1 and 10';
+                                    }
+                                    return true;
                                 }
                             })}
                             error={!!errors.sumVotes}
@@ -336,22 +460,35 @@ export default function AddMovie() {
                                                 rules={{ required: "Please select a professional" }}
                                                 render={({ field: { onChange, value }, fieldState: { error } }) => (
                                                     <Autocomplete<{ id: string; name: string } | null>
-                                                        options={professionals}
-                                                        value={value || null}
+                                                        options={professionalOptions}
+                                                        value={value}
                                                         onChange={(_, newValue) => {
                                                             onChange(newValue);
                                                             const newCast = [...watch('cast')];
                                                             newCast[index] = { ...newCast[index], professional: newValue };
                                                             setValue("cast", newCast);
                                                         }}
+                                                        onInputChange={(_, newInputValue) => {
+                                                            debouncedSearch(newInputValue);
+                                                        }}
                                                         getOptionLabel={(option) => option?.name || ''}
+                                                        loading={searchingProfessional}
                                                         renderInput={(params) => (
                                                             <TextField 
                                                                 {...params} 
                                                                 label="Professional" 
                                                                 error={!!error}
                                                                 helperText={error?.message}
-                                                                fullWidth 
+                                                                fullWidth
+                                                                InputProps={{
+                                                                    ...params.InputProps,
+                                                                    endAdornment: (
+                                                                        <>
+                                                                            {searchingProfessional ? <CircularProgress color="inherit" size={20} /> : null}
+                                                                            {params.InputProps.endAdornment}
+                                                                        </>
+                                                                    ),
+                                                                }}
                                                             />
                                                         )}
                                                     />
@@ -506,4 +643,18 @@ export default function AddMovie() {
             </Container>
         </Box>
     );
+}
+
+// Debounce utility function
+function debounce<T extends (...args: any[]) => any>(
+    func: T,
+    wait: number
+): T & { cancel: () => void } {
+    let timeout: NodeJS.Timeout;
+    const debounced = (...args: Parameters<T>) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), wait);
+    };
+    debounced.cancel = () => clearTimeout(timeout);
+    return debounced as T & { cancel: () => void };
 } 
