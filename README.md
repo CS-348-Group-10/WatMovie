@@ -4,6 +4,40 @@
 
 Our application, WatMovie, is a database-driven platform that allows users to explore movies. We intend to use publicly available IMDb Datasets along with mock data generated through internal scripts for users and reviews, as well as the OMDb API (https://www.omdbapi.com/) to display movie-related images. The platform is designed for movie enthusiasts who want to discover new films, find information about their favorite movies and keep track of what they’re watching currently.
 
+## Database Setup
+
+### Download the Database Dump
+
+Choose which database you want to load:
+
+- **Production Database Dump:**  
+  [Production DB Dump](https://github.com/CS-348-Group-10/WatMovie/releases/download/1.0.0/production.sql.gz)
+
+- **Sample Database Dump:**  
+  [Sample DB Dump](https://github.com/CS-348-Group-10/WatMovie/releases/download/1.0.0/sample.sql.gz)
+
+
+### Docker Setup
+
+1. Start a PostgreSQL container:
+   ```sh
+   docker run --shm-size=2g --name watmovie -e POSTGRES_USER=watmovieuser -e POSTGRES_PASSWORD=watmovie -e POSTGRES_DB=watmovie -p 5432:5432 -d postgres -c shared_buffers=2GB -c work_mem=32MB
+   ```
+2. Copy the zipped dump file into the container:
+   ```sh
+   docker cp <path-to-dump-file>.sql.gz watmovie:/<dump-file>.sql.gz
+   ```
+3. Unzip the dump file inside the container:
+   ```sh
+   docker exec -i watmovie gunzip /<dump-file>.sql.gz
+   ```
+4. Load the dump inside the running container:
+   ```sh
+   docker exec -i watmovie psql -U watmovieuser -d watmovie -f /<dump-file>.sql
+   ```
+
+Your database should now be successfully loaded and ready to use!
+
 ## Steps to run the application
 
 ### Step 1: Clone the repository
@@ -21,71 +55,22 @@ npm install
 
 ### Step 3: Setup the database
 
-1. Create a new docker container for PostgreSQL. This will create a new container with the name `watmovie-postgres` and the user `watmovie` with the password `watmovie`, and the default database `postgres`.
-
-    ```bash
-    docker pull postgres
-    docker run --name watmovie-postgres -e POSTGRES_USER=watmovie -e POSTGRES_PASSWORD=watmovie -p 5432:5432 -d postgres
-    ```
+1. Ensure that the database is loaded using the steps outlined in the **Database Setup** section above.
 
 2. Add the following environment variables to the `.env` file:
 
     ```bash
-    DB_USER=watmovie
+    DB_USER=watmovieuser
     DB_HOST=localhost
-    DB_NAME=postgres
+    DB_NAME=watmovie
     DB_PASSWORD=watmovie
     DB_PORT=5432
     NEXT_PUBLIC_POSTER_API_KEY=8180dbba
     ```
 
-3. Create a python virtual environment and install appropriate packages
-    ```bash
-    python -m venv .venv
-    source .venv/bin/activate
-    pip install faker dotenv psycopg2
-    ```
-
-
-4. Download the appropriate datasets from IMDb
-
-    Navigate to `https://datasets.imdbws.com/` and download the following 4 tsv files:
-    - title.basics.tsv [rename this to `title.tsv`]
-    - name.basics.tsv
-    - title.principals.tsv
-    - title.ratings.tsv
-
-    Move these 4 tsv files to the `public` folder.
-
-4. Run the server to create the database schema.
-
-    ```bash
-    npm run dev
-    ```
-
-    Next, we need to send an empty POST request to `http://localhost:3000/api/dev/runMigrations` to create the database schema.
-
-5. Populate the database
-
-- **To load the sample database:**
-    
-    Send an empty POST request to 
-    
-    `http://localhost:3000/api/dev/populateDatabase` 
-    
-    to populate the database with the sample data.
-
-- **To load the production dataset:**
-    
-    In the above POST request, set the query parameter `isProduction=true` i.e. send an empty POST request to 
-    
-    `http://localhost:3000/api/dev/populateDatabase?isProduction=true` 
-    
-    to populate the database with the production dataset.
-
 ### Step 4: Open the application
 
-Check the application by opening the `http://localhost:3000` in your browser. You should see the following page:
+Check the application by opening `http://localhost:3000` in your browser. You should see the following page:
 
 ![WatMovie](public/m3_homepage.png)
 
