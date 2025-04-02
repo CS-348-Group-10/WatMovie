@@ -115,9 +115,9 @@ Check the application by opening the `http://localhost:3000` in your browser. Yo
 
 ### Advanced Features:
 
-6. **Search/Filter Movies (Stored Procedure)**
+6. **Search/Filter Movies (Complex Query)**
     
-    Users can search for movies by name or apply filters like genre, release year, and rating. This functionality is implemented using a stored procedure with complex queries involving multiple joins and groupings. The search feature improves efficiency while handling large datasets.
+    Users can search for movies by name or apply filters like genre, release year, and rating. This functionality is implemented using a complex query involving multiple joins and groupings.
 
 7. **Movie Ratings Trend (Window Function)**
     
